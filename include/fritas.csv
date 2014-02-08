@@ -1,0 +1,8 @@
+code,message
+0,Hello
+1,Ready
+11,StorePostReq
+12,StorePostResp
+13,GetPostReq
+14,GetPostResp
+255,ErrorResp

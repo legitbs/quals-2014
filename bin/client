@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+require 'socket'
+require 'fritas/codec'
+
+c = Fritas::Codec.new TCPSocket.new 'localhost', 6908
+
+h = c.expect :Hello
+pp h
+c.send :Hello, uuid: h.uuid
+
+pp c.expect(:Ready)
