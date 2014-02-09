@@ -17,12 +17,12 @@ module Fritas
     end
 
     def error(body)
-      send :ErrorResp, reason: body
+      write :ErrorResp, reason: body
       close
       raise body
     end
 
-    def send(message_name, options={})
+    def write(message_name, options={})
       message_instance = Messages.const_get(message_name).new options
       message_encoded = message_instance.encode.to_s
       header = [MESSAGE_TO_CODE[message_name], message_encoded.length].pack 'CN'
@@ -30,28 +30,25 @@ module Fritas
       @sock.write header
       @sock.write message_encoded
       @sock.flush
-      pp message_instance
     end
 
     def expect(message_name)
       message = receive
       unless message.is_a? materialize(message_name)
         err = "Expected #{message_name.to_s}, got #{message.class.name}"
-        send :ErrorResp, reason: err
-        @sock.close
-        raise err
+        error err
       end
-pp message
+
       return message
     end
 
     def receive
       header = @sock.read(5)
-      error "Failed to read header" if header.nil?
+      raise "Failed to read header" if header.nil?
       code, length = header.unpack 'CN'
-      body = @sock.read length
+      body = @sock.read length if length > 0
 
-      Messages.const_get(CODE_TO_MESSAGE[code]).decode body
+      Messages.const_get(CODE_TO_MESSAGE[code]).decode(body || '')
     end
 
     private

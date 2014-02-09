@@ -22,6 +22,10 @@ module Fritas
           @parent.tags.link t.tagname, post
         end
       end
+
+      def get(uuid)
+        @coll[uuid]
+      end
     end
 
     class Tags

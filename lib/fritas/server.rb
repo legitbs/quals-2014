@@ -34,6 +34,7 @@ module Fritas
     end
 
     def handle_connection(socket)
+      socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
       uuid = SecureRandom.uuid
       @logger.info "connected from #{socket.peeraddr(false).inspect} => #{uuid}" 
       codec = Codec.new socket

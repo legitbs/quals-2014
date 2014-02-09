@@ -1,20 +1,28 @@
 #!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'pp'
 require 'socket'
 require 'fritas/codec'
+s = TCPSocket.new 'localhost', 6908
+s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
 
-c = Fritas::Codec.new TCPSocket.new 'localhost', 6908
+c = Fritas::Codec.new s
 
 h = c.expect :Hello
 pp h
-c.send :Hello, uuid: h.uuid
+c.write :Hello, uuid: h.uuid
 
 pp c.expect(:Ready)
 
-c.send :StorePostReq, post: {title: 'bryce post', body: '420', tags: %w{abc def ghi}}
+c.write :StorePostReq, post: Fritas::Messages::Post.new(
+  title: 'bryce post', 
+  body: '420', 
+  tags: %w{abc def ghi}.map do |e|
+    Fritas::Messages::Tag.new tagname: e
+  end)
 pp 'stored post'
 pp(resp = c.expect(:StorePostResp))
 
-c.send :GetPostReq, uuid: resp.uuid
+c.write :GetPostReq, uuid: resp.uuid
 pp c.expect(:GetPostResp)

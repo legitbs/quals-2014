@@ -25,13 +25,13 @@ module Fritas
     private
     def say_hello
       @logger.info "Hello #{@uuid}"
-      @codec.send :Hello, uuid: @uuid
+      @codec.write :Hello, uuid: @uuid
       resp = @codec.expect :Hello
       if resp.uuid != @uuid
         @codec.error "Failed to say Hello."
       end
       @logger.info "Ready #{@uuid}"
-      @codec.send :Ready
+      @codec.write :Ready
     end
 
     def consume_message

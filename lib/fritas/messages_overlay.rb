@@ -4,7 +4,7 @@ module Fritas
       def process(session)
         self.post.uuid ||= SecureRandom.uuid
         session.collection.posts.add self.post
-        session.codec.send :StorePostResp, uuid: self.post.uuid
+        session.codec.write :StorePostResp, uuid: self.post.uuid
       end
     end
 
@@ -12,7 +12,7 @@ module Fritas
       def process(session)
         post = session.collection.posts.get self.uuid
 
-        session.codec.send :GetPostResp, post
+        session.codec.write :GetPostResp, post: post
       end
     end
   end
