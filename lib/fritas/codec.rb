@@ -1,5 +1,6 @@
 require 'csv'
 require 'fritas/messages'
+require 'fritas/messages_overlay'
 
 module Fritas
   class Codec
@@ -28,6 +29,8 @@ module Fritas
 
       @sock.write header
       @sock.write message_encoded
+      @sock.flush
+      pp message_instance
     end
 
     def expect(message_name)
@@ -38,7 +41,7 @@ module Fritas
         @sock.close
         raise err
       end
-
+pp message
       return message
     end
 

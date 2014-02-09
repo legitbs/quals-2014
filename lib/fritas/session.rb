@@ -1,9 +1,14 @@
+require 'fritas/collection'
+
 module Fritas
   class Session
+    attr_reader :codec, :uuid, :logger, :collection
+
     def initialize(codec, uuid, logger)
       @codec = codec
       @uuid = uuid
       @logger = logger
+      @collection = Collection.new
     end
 
     def run
@@ -27,6 +32,13 @@ module Fritas
       end
       @logger.info "Ready #{@uuid}"
       @codec.send :Ready
+    end
+
+    def consume_message
+      @logger.info "Waiting to consume #{@uuid}"
+      message = @codec.receive
+      @logger.info "Got #{message.inspect} from #{@uuid}"
+      message.process(self)
     end
   end
 end

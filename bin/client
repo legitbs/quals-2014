@@ -11,3 +11,10 @@ pp h
 c.send :Hello, uuid: h.uuid
 
 pp c.expect(:Ready)
+
+c.send :StorePostReq, post: {title: 'bryce post', body: '420', tags: %w{abc def ghi}}
+pp 'stored post'
+pp(resp = c.expect(:StorePostResp))
+
+c.send :GetPostReq, uuid: resp.uuid
+pp c.expect(:GetPostResp)

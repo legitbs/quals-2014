@@ -1,4 +1,4 @@
-
+task :default => :pb_defs
 
 task :pb_defs => 'lib/fritas/messages.rb'
 

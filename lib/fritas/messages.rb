@@ -60,7 +60,7 @@ module Fritas
     end
 
     class GetPostResp
-      required :post, Post, 1
+      optional :post, Post, 1
     end
 
     class ErrorResp
@@ -71,12 +71,11 @@ module Fritas
       optional :uuid, :bytes, 1
       required :title, :bytes, 2
       required :body, :bytes, 3
-      repeated :tag, Tag, 4
+      repeated :tags, Tag, 4
     end
 
     class Tag
-      optional :uuid, :bytes, 1
-      required :tagname, :bytes, 2
+      required :tagname, :bytes, 1
     end
   end
 end

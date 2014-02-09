@@ -17,7 +17,7 @@ message GetPostReq {
 }
 
 message GetPostResp {
-  required Post post = 1;
+  optional Post post = 1;
 }
 
 message ErrorResp {
@@ -28,10 +28,9 @@ message Post {
   optional bytes uuid = 1;
   required bytes title = 2;
   required bytes body = 3;
-  repeated Tag tag = 4;
+  repeated Tag tags = 4;
 }
 
 message Tag {
-  optional bytes uuid = 1;
-  required bytes tagname = 2;
+  required bytes tagname = 1;
 }
