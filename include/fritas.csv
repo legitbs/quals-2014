@@ -5,4 +5,8 @@ code,message
 12,StorePostResp
 13,GetPostReq
 14,GetPostResp
+21,ListTagReq
+22,ListTagResp
+31,RelatedTagReq
+32,RelatedTagResp
 255,ErrorResp

@@ -14,10 +14,25 @@ message StorePostResp {
 
 message GetPostReq {
   required bytes uuid = 1;
+  optional bytes password = 2;
 }
 
 message GetPostResp {
   optional Post post = 1;
+}
+
+message ListTagReq {}
+
+message ListTagResp {
+  repeated Tag tags = 1;
+}
+
+message RelatedTagReq {
+  required Tag tag = 1;
+}
+
+message RelatedTagResp {
+  repeated Tag tags = 1;
 }
 
 message ErrorResp {
