@@ -21,6 +21,14 @@ message GetPostResp {
   optional Post post = 1;
 }
 
+message ListPostReq {
+  optional Tag tag = 1;
+}
+
+message ListPostResp {
+  repeated bytes uuids = 1;
+}
+
 message ListTagReq {}
 
 message ListTagResp {

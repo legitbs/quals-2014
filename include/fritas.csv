@@ -5,6 +5,8 @@ code,message
 12,StorePostResp
 13,GetPostReq
 14,GetPostResp
+15,ListPostReq
+16,ListPostResp
 21,ListTagReq
 22,ListTagResp
 31,RelatedTagReq
