@@ -21,7 +21,6 @@ c.write :StorePostReq, post: Fritas::Messages::Post.new(
   tags: %w{abc def ghi}.map do |e|
     Fritas::Messages::Tag.new tagname: e
   end)
-pp 'stored post'
 pp(resp = c.expect(:StorePostResp))
 
 c.write :StorePostReq, post: Fritas::Messages::Post.new(
@@ -30,8 +29,13 @@ c.write :StorePostReq, post: Fritas::Messages::Post.new(
   tags: ['password=asdf', 'abc'].map do |e|
     Fritas::Messages::Tag.new tagname: e
   end)
-
 pp(resp2 = c.expect(:StorePostResp))
+
+c.write :ListPostReq
+pp c.expect :ListPostResp
+
+c.write :ListPostReq, tag: Fritas::Messages::Tag.new(tagname: 'def')
+pp c.expect :ListPostResp
 
 c.write :GetPostReq, uuid: resp.uuid
 pp c.expect(:GetPostResp)
