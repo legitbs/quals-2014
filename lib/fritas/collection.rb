@@ -38,6 +38,19 @@ module Fritas
         @coll[tagname] ||= Set.new
         @coll[tagname].add post
       end
+
+      def list
+        @coll.keys.reject do |k|
+          k =~ /^password=/
+        end
+      end
+
+      def related(tagname)
+        posts = @coll[tagname] || Set.new
+        posts.map do |p|
+          p.tags.map(&:tagname)
+        end.flatten.uniq
+      end
     end
   end
 end

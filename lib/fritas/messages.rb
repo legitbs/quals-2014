@@ -28,6 +28,22 @@ module Fritas
       include Beefcake::Message
     end
 
+    class ListTagReq
+      include Beefcake::Message
+    end
+
+    class ListTagResp
+      include Beefcake::Message
+    end
+
+    class RelatedTagReq
+      include Beefcake::Message
+    end
+
+    class RelatedTagResp
+      include Beefcake::Message
+    end
+
     class ErrorResp
       include Beefcake::Message
     end
@@ -57,10 +73,26 @@ module Fritas
 
     class GetPostReq
       required :uuid, :bytes, 1
+      optional :password, :bytes, 2
     end
 
     class GetPostResp
       optional :post, Post, 1
+    end
+
+    class ListTagReq
+    end
+
+    class ListTagResp
+      repeated :tags, Tag, 1
+    end
+
+    class RelatedTagReq
+      required :tag, Tag, 1
+    end
+
+    class RelatedTagResp
+      repeated :tags, Tag, 1
     end
 
     class ErrorResp
