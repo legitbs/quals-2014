@@ -24,5 +24,26 @@ c.write :StorePostReq, post: Fritas::Messages::Post.new(
 pp 'stored post'
 pp(resp = c.expect(:StorePostResp))
 
+c.write :StorePostReq, post: Fritas::Messages::Post.new(
+  title: 'cool pist',
+  body: '888',
+  tags: ['password=asdf', 'abc'].map do |e|
+    Fritas::Messages::Tag.new tagname: e
+  end)
+
+pp(resp2 = c.expect(:StorePostResp))
+
 c.write :GetPostReq, uuid: resp.uuid
 pp c.expect(:GetPostResp)
+
+c.write :ListTagReq
+pp c.expect :ListTagResp
+
+c.write :RelatedTagReq, tag: Fritas::Messages::Tag.new(tagname: 'abc')
+pp c.expect :RelatedTagResp
+
+c.write :GetPostReq, uuid: resp2.uuid, password: 'asdf'
+pp c.expect :GetPostResp
+
+c.write :GetPostReq, uuid: resp2.uuid
+pp c.expect :ErrorResp
