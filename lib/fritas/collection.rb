@@ -26,6 +26,10 @@ module Fritas
       def get(uuid)
         @coll[uuid]
       end
+
+      def list
+        @coll.values
+      end
     end
 
     class Tags
@@ -43,6 +47,10 @@ module Fritas
         @coll.keys.reject do |k|
           k =~ /^password=/
         end
+      end
+
+      def get(tagname)
+        @coll[tagname] || []
       end
 
       def related(tagname)

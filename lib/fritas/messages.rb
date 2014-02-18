@@ -28,6 +28,14 @@ module Fritas
       include Beefcake::Message
     end
 
+    class ListPostReq
+      include Beefcake::Message
+    end
+
+    class ListPostResp
+      include Beefcake::Message
+    end
+
     class ListTagReq
       include Beefcake::Message
     end
@@ -78,6 +86,14 @@ module Fritas
 
     class GetPostResp
       optional :post, Post, 1
+    end
+
+    class ListPostReq
+      optional :tag, Tag, 1
+    end
+
+    class ListPostResp
+      repeated :uuids, :bytes, 1
     end
 
     class ListTagReq

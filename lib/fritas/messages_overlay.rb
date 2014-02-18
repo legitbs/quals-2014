@@ -14,7 +14,7 @@ module Fritas
         check_password = post.tags.detect do |t|
           t.tagname =~ /^password=/
         end
-        
+
         if check_password
           desired_password = check_password.tagname
           provided_password = "password=#{self.password}"
@@ -24,6 +24,19 @@ module Fritas
         end
 
         session.codec.write :GetPostResp, post: post
+      end
+    end
+
+    class ListPostReq
+      def process(session)
+        posts = nil
+        if tag
+          posts = session.collection.tags.get tag.tagname
+        else
+          posts = session.collection.posts.list
+        end
+
+        session.codec.write :ListPostResp, uuids: posts.map(&:uuid)
       end
     end
 
