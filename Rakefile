@@ -16,6 +16,6 @@ task :dist => ['dist/fritas/fritas.proto']
 
 directory 'dist/fritas'
 
-file 'dist/fritas/fritas.proto' => 'include/fritas.proto', 'dist/fritas' do |t|
+file 'dist/fritas/fritas.proto' => ['include/fritas.proto', 'dist/fritas'] do |t|
   sh "cp #{t.prerequisites.first} #{t.name}"
 end
