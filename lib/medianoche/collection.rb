@@ -1,6 +1,6 @@
 require 'set'
 
-module Fritas
+module Medianoche
   class Collection
     attr_reader :posts
     attr_reader :tags

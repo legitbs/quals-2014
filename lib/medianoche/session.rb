@@ -1,6 +1,6 @@
-require 'fritas/collection'
+require 'medianoche/collection'
 
-module Fritas
+module Medianoche
   class Session
     attr_reader :codec, :uuid, :logger, :collection
 

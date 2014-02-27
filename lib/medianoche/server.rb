@@ -1,10 +1,10 @@
-require 'fritas/codec'
-require 'fritas/session'
+require 'medianoche/codec'
+require 'medianoche/session'
 require 'celluloid/io'
 require 'logger'
 require 'securerandom'
 
-module Fritas
+module Medianoche
   class Server
     include Celluloid::IO
     finalizer :shutdown
@@ -17,7 +17,7 @@ module Fritas
     end
 
     def start
-      @logger.info "fritas starting"
+      @logger.info "medianoche starting"
       @server = TCPServer.new @host, @port
       @logger.info "started"
       async.run
@@ -36,7 +36,7 @@ module Fritas
     def handle_connection(socket)
       socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
       uuid = SecureRandom.uuid
-      @logger.info "connected from #{socket.peeraddr(false).inspect} => #{uuid}" 
+      @logger.info "connected from #{socket.peeraddr(false).inspect} => #{uuid}"
       codec = Codec.new socket
       session = Session.new codec, uuid, @logger
       session.run

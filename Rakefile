@@ -7,7 +7,7 @@ desc "Package parts for distribution"
 task :dist => ['dist/fritas/fritas.proto']
 
 file 'lib/fritas/messages.rb' => 'include/fritas.proto' do |t|
-  sh "export BEEFCAKE_NAMESPACE=Fritas::Messages; protoc --beefcake_out lib/fritas #{t.prerequisites.first}"
+  sh "export BEEFCAKE_NAMESPACE=Medianoche::Messages; protoc --beefcake_out lib/fritas #{t.prerequisites.first}"
   sh "mv lib/fritas/fritas.pb.rb #{t.name}"
 end
 

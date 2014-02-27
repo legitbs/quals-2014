@@ -1,8 +1,8 @@
 require 'csv'
-require 'fritas/messages'
-require 'fritas/messages_overlay'
+require 'medianoche/messages'
+require 'medianoche/messages_overlay'
 
-module Fritas
+module Medianoche
   class Codec
     CODE_TO_MESSAGE = Hash.new
     MESSAGE_TO_CODE = Hash.new
@@ -62,7 +62,7 @@ module Fritas
       mapping_data = CSV.read(
         File.join(
           File.dirname(__FILE__),
-          '..', '..', 'include', 'fritas.csv'))
+          '..', '..', 'include', 'medianoche.csv'))
 
       mapping_data.each do |md|
         next unless md[0] =~ /^\d+$/
@@ -70,6 +70,6 @@ module Fritas
       end
 
       MESSAGE_TO_CODE.merge! CODE_TO_MESSAGE.invert
-    end 
+    end
   end
 end

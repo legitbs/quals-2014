@@ -1,4 +1,4 @@
-# fritas
+# medianoche
 
 blog backend api, with protocol buffers
 

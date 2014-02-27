@@ -1,4 +1,4 @@
-module Fritas
+module Medianoche
   module Messages
     class StorePostReq
       def process(session)
