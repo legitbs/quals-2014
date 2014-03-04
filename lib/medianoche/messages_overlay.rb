@@ -3,6 +3,16 @@ module Medianoche
     class StorePostReq
       def process(session)
         self.post.uuid ||= SecureRandom.uuid
+
+        encrypt = self.post.tags.detect do |t|
+          t.tagname =~ /^password=/
+        end
+
+        if encrypt
+          encryptor = Encryption.new self.post.body, encrypt.tagname
+          self.post.body = encryptor.encrypt
+        end
+
         session.collection.posts.add self.post
         session.codec.write :StorePostResp, uuid: self.post.uuid
       end
