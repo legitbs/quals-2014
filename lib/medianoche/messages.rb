@@ -1,7 +1,7 @@
-## Generated from include/fritas.proto for 
+## Generated from include/medianoche.proto for 
 require "beefcake"
 
-module Fritas
+module Medianoche
   module Messages
 
     class Hello
