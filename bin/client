@@ -3,11 +3,11 @@ $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'pp'
 require 'socket'
-require 'fritas/codec'
-s = TCPSocket.new 'localhost', 6908
+require 'medianoche/codec'
+s = TCPSocket.new 'localhost', 6909
 s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
 
-c = Fritas::Codec.new s
+c = Medianoche::Codec.new s
 
 h = c.expect :Hello
 pp h
@@ -15,26 +15,26 @@ c.write :Hello, uuid: h.uuid
 
 pp c.expect(:Ready)
 
-c.write :StorePostReq, post: Fritas::Messages::Post.new(
+c.write :StorePostReq, post: Medianoche::Messages::Post.new(
   title: 'bryce post', 
   body: '420', 
   tags: %w{abc def ghi}.map do |e|
-    Fritas::Messages::Tag.new tagname: e
+    Medianoche::Messages::Tag.new tagname: e
   end)
 pp(resp = c.expect(:StorePostResp))
 
-c.write :StorePostReq, post: Fritas::Messages::Post.new(
+c.write :StorePostReq, post: Medianoche::Messages::Post.new(
   title: 'cool pist',
   body: '888',
   tags: ['password=asdf', 'abc'].map do |e|
-    Fritas::Messages::Tag.new tagname: e
+    Medianoche::Messages::Tag.new tagname: e
   end)
 pp(resp2 = c.expect(:StorePostResp))
 
 c.write :ListPostReq
 pp c.expect :ListPostResp
 
-c.write :ListPostReq, tag: Fritas::Messages::Tag.new(tagname: 'def')
+c.write :ListPostReq, tag: Medianoche::Messages::Tag.new(tagname: 'def')
 pp c.expect :ListPostResp
 
 c.write :GetPostReq, uuid: resp.uuid
@@ -43,7 +43,7 @@ pp c.expect(:GetPostResp)
 c.write :ListTagReq
 pp c.expect :ListTagResp
 
-c.write :RelatedTagReq, tag: Fritas::Messages::Tag.new(tagname: 'abc')
+c.write :RelatedTagReq, tag: Medianoche::Messages::Tag.new(tagname: 'abc')
 pp c.expect :RelatedTagResp
 
 c.write :GetPostReq, uuid: resp2.uuid, password: 'asdf'
