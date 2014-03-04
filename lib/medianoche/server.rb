@@ -1,5 +1,6 @@
 require 'medianoche/codec'
 require 'medianoche/session'
+require 'medianoche/encryption'
 require 'celluloid/io'
 require 'logger'
 require 'securerandom'
