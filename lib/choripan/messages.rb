@@ -1,7 +1,7 @@
-## Generated from include/fritas.proto for 
+## Generated from include/choripan.proto for 
 require "beefcake"
 
-module Fritas
+module Choripan
   module Messages
 
     class Hello
@@ -12,14 +12,6 @@ module Fritas
       include Beefcake::Message
     end
 
-    class StorePostReq
-      include Beefcake::Message
-    end
-
-    class StorePostResp
-      include Beefcake::Message
-    end
-
     class GetPostReq
       include Beefcake::Message
     end
@@ -36,19 +28,11 @@ module Fritas
       include Beefcake::Message
     end
 
-    class ListTagReq
+    class ListLogReq
       include Beefcake::Message
     end
 
-    class ListTagResp
-      include Beefcake::Message
-    end
-
-    class RelatedTagReq
-      include Beefcake::Message
-    end
-
-    class RelatedTagResp
+    class ListLogResp
       include Beefcake::Message
     end
 
@@ -60,7 +44,11 @@ module Fritas
       include Beefcake::Message
     end
 
-    class Tag
+    class Log
+      include Beefcake::Message
+    end
+
+    class Signature
       include Beefcake::Message
     end
 
@@ -71,17 +59,9 @@ module Fritas
     class Ready
     end
 
-    class StorePostReq
-      required :post, Post, 1
-    end
-
-    class StorePostResp
-      required :uuid, :bytes, 1
-    end
-
     class GetPostReq
       required :uuid, :bytes, 1
-      optional :password, :bytes, 2
+      required :signature, Signature, 2
     end
 
     class GetPostResp
@@ -89,26 +69,17 @@ module Fritas
     end
 
     class ListPostReq
-      optional :tag, Tag, 1
     end
 
     class ListPostResp
       repeated :uuids, :bytes, 1
     end
 
-    class ListTagReq
+    class ListLogReq
     end
 
-    class ListTagResp
-      repeated :tags, Tag, 1
-    end
-
-    class RelatedTagReq
-      required :tag, Tag, 1
-    end
-
-    class RelatedTagResp
-      repeated :tags, Tag, 1
+    class ListLogResp
+      repeated :logs, Log, 1
     end
 
     class ErrorResp
@@ -119,11 +90,17 @@ module Fritas
       optional :uuid, :bytes, 1
       required :title, :bytes, 2
       required :body, :bytes, 3
-      repeated :tags, Tag, 4
     end
 
-    class Tag
-      required :tagname, :bytes, 1
+    class Log
+      required :uuid, :bytes, 1
+      required :signature, Signature, 2
+      required :timestamp, :uint64, 3
+    end
+
+    class Signature
+      required :r, :bytes, 1
+      required :s, :bytes, 2
     end
   end
 end

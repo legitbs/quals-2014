@@ -4,17 +4,9 @@ message Hello {
 
 message Ready {}
 
-message StorePostReq {
-  required Post post = 1;
-}
-
-message StorePostResp {
-  required bytes uuid = 1;
-}
-
 message GetPostReq {
   required bytes uuid = 1;
-  optional bytes password = 2;
+  required Signature signature = 2;
 }
 
 message GetPostResp {
@@ -22,25 +14,16 @@ message GetPostResp {
 }
 
 message ListPostReq {
-  optional Tag tag = 1;
 }
 
 message ListPostResp {
   repeated bytes uuids = 1;
 }
 
-message ListTagReq {}
+message ListLogReq {}
 
-message ListTagResp {
-  repeated Tag tags = 1;
-}
-
-message RelatedTagReq {
-  required Tag tag = 1;
-}
-
-message RelatedTagResp {
-  repeated Tag tags = 1;
+message ListLogResp {
+  repeated Log logs = 1;
 }
 
 message ErrorResp {
@@ -51,9 +34,15 @@ message Post {
   optional bytes uuid = 1;
   required bytes title = 2;
   required bytes body = 3;
-  repeated Tag tags = 4;
 }
 
-message Tag {
-  required bytes tagname = 1;
+message Log {
+  required bytes uuid = 1;
+  required Signature signature = 2;
+  required uint64 timestamp = 3;
+}
+
+message Signature {
+  required bytes r = 1;
+  required bytes s = 2;
 }
