@@ -29,3 +29,7 @@ getreq = Choripan::Messages::GetPostReq.new uuid: l.uuid, signature: l.signature
 
 c.write :GetPostReq, getreq
 pp c.expect :GetPostResp
+
+badgetreq = Choripan::Messages::GetPostReq.new uuid: logsresp.logs[1].uuid, signature: l.signature
+c.write :GetPostReq, badgetreq
+pp c.receive

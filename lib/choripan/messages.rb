@@ -52,6 +52,10 @@ module Choripan
       include Beefcake::Message
     end
 
+    class PubKey
+      include Beefcake::Message
+    end
+
     class Hello
       required :uuid, :bytes, 1
     end
@@ -101,6 +105,13 @@ module Choripan
     class Signature
       required :r, :bytes, 1
       required :s, :bytes, 2
+      required :k, PubKey, 3
+    end
+
+    class PubKey
+      required :groupname, :bytes, 1
+      required :x, :bytes, 2
+      required :y, :bytes, 3
     end
   end
 end

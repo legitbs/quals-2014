@@ -23,7 +23,7 @@ module Choripan
 
     def verify(uuid, signature)
       validate_signing_key signature.k
-      sig = ECDSA::Signature.new signature.r, signature.s
+      sig = ECDSA::Signature.new signature.r.to_i, signature.s.to_i
       correct = ECDSA.valid_signature?(@public, uuid, sig)
       return correct
     end

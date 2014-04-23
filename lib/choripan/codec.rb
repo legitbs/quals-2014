@@ -34,6 +34,10 @@ module Choripan
 
     def expect(message_name)
       message = receive
+      if message.is_a? Messages::ErrorResp
+        error message.reason
+      end
+
       unless message.is_a? materialize(message_name)
         err = "Expected #{message_name.to_s}, got #{message.class.name}"
         error err

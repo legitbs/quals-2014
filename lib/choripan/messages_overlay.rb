@@ -10,18 +10,18 @@ module Choripan
 
     class GetPostReq
       def process(session)
+        begin
+          valid = session.signer.verify self.uuid, self.signature
+        rescue => e
+          session.codec.write :ErrorResp, reason: e
+          return
+        end
+        unless valid
+          session.codec.write :ErrorResp, reason: "invalid signature"
+          return
+        end
+        
         post = session.collection.posts.get self.uuid
-        check_password = post.tags.detect do |t|
-          t.tagname =~ /^password=/
-        end
-
-        if check_password
-          desired_password = check_password.tagname
-          provided_password = "password=#{self.password}"
-          if (desired_password != provided_password)
-            session.codec.error "Wrong password"
-          end
-        end
 
         session.codec.write :GetPostResp, post: post
       end
@@ -29,36 +29,17 @@ module Choripan
 
     class ListPostReq
       def process(session)
-        posts = nil
-        if tag
-          posts = session.collection.tags.get tag.tagname
-        else
-          posts = session.collection.posts.list
-        end
+        posts = session.collection.posts.list
 
         session.codec.write :ListPostResp, uuids: posts.map(&:uuid)
       end
     end
 
-    class ListTagReq
+    class ListLogReq
       def process(session)
-        tag_names = session.collection.tags.list
-        tags = tag_names.map do |n|
-          Tag.new tagname: n
-        end
-
-        session.codec.write :ListTagResp, tags: tags
-      end
-    end
-
-    class RelatedTagReq
-      def process(session)
-        tag_names = session.collection.tags.related self.tag.tagname
-        tags = tag_names.map do |n|
-          Tag.new tagname: n
-        end
-
-        session.codec.write :RelatedTagResp, tags: tags
+        logs = session.collection.logs.list
+pp logs
+        session.codec.write :ListLogResp, logs: logs
       end
     end
   end

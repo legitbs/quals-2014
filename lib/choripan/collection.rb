@@ -35,12 +35,16 @@ module Choripan
         @coll = Array.new
       end
 
-      def add(getpostreq)
-        @coll << Log.new(
-                         timestamp: Time.now.to_i, 
-                         uuid: getpostreq.uuid,
-                         signature: getpostreq.signature
-                         )
+      def log(getpostreq)
+        add Messages::Log.new(
+                              timestamp: Time.now.to_i, 
+                              uuid: getpostreq.uuid,
+                              signature: getpostreq.signature
+                              )
+      end
+
+      def add(log)
+        @coll << log
       end
 
       def list

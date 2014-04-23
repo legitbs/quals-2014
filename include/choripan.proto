@@ -45,4 +45,11 @@ message Log {
 message Signature {
   required bytes r = 1;
   required bytes s = 2;
+  required PubKey k = 3;
+}
+
+message PubKey {
+  required bytes groupname = 1;
+  required bytes x = 2;
+  required bytes y = 3;
 }
