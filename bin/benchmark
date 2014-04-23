@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'pp'
+require 'socket'
+require 'fritas/codec'
+
+100.times do 
+
+  s = TCPSocket.new 'localhost', 6908
+  s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
+
+  c = Fritas::Codec.new s
+
+  h = c.expect :Hello
+  pp h
+  c.write :Hello, uuid: h.uuid
+
+  pp c.expect(:Ready)
+
+  sleep 1
+
+end
+
+gets

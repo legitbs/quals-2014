@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'pp'
+require 'socket'
+require 'choripan/codec'
+s = TCPSocket.new 'localhost', 6910
+s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
+
+c = Choripan::Codec.new s
+
+h = c.expect :Hello
+pp h
+c.write :Hello, uuid: h.uuid
+
+pp c.expect(:Ready)
+
+c.write :ListPostReq
+postsresp = c.expect :ListPostResp
+pp postsresp
+
+c.write :ListLogReq
+logsresp = c.expect :ListLogResp
+pp logsresp
+
+l = logsresp.logs.first
+
+getreq = Choripan::Messages::GetPostReq.new uuid: l.uuid, signature: l.signature
+
+c.write :GetPostReq, getreq
+pp c.expect :GetPostResp

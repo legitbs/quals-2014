@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'choripan'
+require 'pp'
+
+address = ENV['CHORIPAN_ADDRESS'] || '0.0.0.0'
+port = ENV['CHORIPAN_PORT'] ? ENV['CHORIPAN_PORT'].to_i : 6910
+$key = ENV['CHORIPAN_KEY'] || 'little black submarines Botniheg7'
+
+Celluloid.start
+supervisor = Choripan::Server.supervise address, port
+trap 'INT' do
+  supervisor.terminate
+  exit
+end
+sleep
