@@ -6,6 +6,7 @@ require 'pp'
 
 address = ENV['MEDIANOCHE_ADDRESS'] || '0.0.0.0'
 port = ENV['MEDIANOCHE_PORT'] ? ENV['MEDIANOCHE_PORT'].to_i : 6909
+$key = ENV['MEDIANOCHE_KEY'] || 'capa meets the sun to heal TrewpOjna'
 
 Celluloid.start
 supervisor = Medianoche::Server.supervise address, port
