@@ -6,6 +6,7 @@ require 'pp'
 
 address = ENV['FRITAS_ADDRESS'] || '0.0.0.0'
 port = ENV['FRITAS_PORT'] ? ENV['FRITAS_PORT'].to_i : 6908
+$key = ENV['FRITAS_KEY'] || 'a tf2 kill video set to propane nightmares'
 
 Celluloid.start
 supervisor = Fritas::Server.supervise address, port
