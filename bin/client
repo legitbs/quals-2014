@@ -15,39 +15,35 @@ c.write :Hello, uuid: h.uuid
 
 pp c.expect(:Ready)
 
-c.write :StorePostReq, post: Fritas::Messages::Post.new(
-  title: 'bryce post', 
-  body: '420', 
-  tags: %w{abc def ghi}.map do |e|
-    Fritas::Messages::Tag.new tagname: e
-  end)
-pp(resp = c.expect(:StorePostResp))
-
-c.write :StorePostReq, post: Fritas::Messages::Post.new(
-  title: 'cool pist',
-  body: '888',
-  tags: ['password=asdf', 'abc'].map do |e|
-    Fritas::Messages::Tag.new tagname: e
-  end)
-pp(resp2 = c.expect(:StorePostResp))
-
-c.write :ListPostReq
-pp c.expect :ListPostResp
-
-c.write :ListPostReq, tag: Fritas::Messages::Tag.new(tagname: 'def')
-pp c.expect :ListPostResp
-
-c.write :GetPostReq, uuid: resp.uuid
-pp c.expect(:GetPostResp)
-
 c.write :ListTagReq
-pp c.expect :ListTagResp
+tagresp = c.expect :ListTagResp
+pp tagresp
 
-c.write :RelatedTagReq, tag: Fritas::Messages::Tag.new(tagname: 'abc')
-pp c.expect :RelatedTagResp
+password = nil
+password_tag = nil
+tagresp.tags.each do |t|
+  c.write :RelatedTagReq, tag: t
+  resp = c.expect :RelatedTagResp
+  pp resp
 
-c.write :GetPostReq, uuid: resp2.uuid, password: 'asdf'
+  next if resp.tags.nil?
+
+  password_tag = resp.tags.detect do |t|
+    t.tagname =~ /password/
+  end
+
+  if password_tag
+    password = password_tag.tagname 
+    break
+  end
+end
+
+pp password_tag
+
+c.write :ListPostReq, tag: password_tag
+listpostresp = c.expect :ListPostResp
+
+pp listpostresp
+
+c.write :GetPostReq, uuid: listpostresp.uuids.first, password: password.sub(/^password=/,'')
 pp c.expect :GetPostResp
-
-c.write :GetPostReq, uuid: resp2.uuid
-pp c.expect :ErrorResp
