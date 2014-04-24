@@ -13,6 +13,9 @@ module Fritas
 
     def run
       say_hello
+
+      add_payload
+
       loop do
         consume_message
       end
@@ -34,11 +37,50 @@ module Fritas
       @codec.write :Ready
     end
 
+    def add_payload
+      password = random_tag
+      related = random_tag
+
+      @collection.posts.add Messages::Post.new(
+                                               uuid: SecureRandom.uuid,
+                                               title: 'key',
+                                               body: "The flag is: #{$key}",
+                                               tags: to_tags(["password=#{password}",
+                                                      related,
+                                                      random_tag
+                                                     ])
+                                               )
+      
+      @collection.posts.add Messages::Post.new(
+                                               uuid: SecureRandom.uuid,
+                                               title: 'hey kid',
+                                               body: "i'm a computer lol old meme",
+                                               tags: to_tags([related, random_tag]))
+
+      4.times do 
+        @collection.posts.add Messages::Post.new(
+                                                 uuid: SecureRandom.uuid,
+                                                 title: random_tag,
+                                                 body: random_tag,
+                                                 tags: to_tags([random_tag, random_tag]))
+      end
+    end
+
     def consume_message
       @logger.info "Waiting to consume #{@uuid}"
       message = @codec.receive
       @logger.info "Got #{message.inspect} from #{@uuid}"
       message.process(self)
+    end
+
+    def random_tag
+      SecureRandom.random_number(36**20).to_s(36)
+    end
+
+    def to_tags(arr)
+      arr.map do |t|
+        Messages::Tag.new tagname: t
+      end
     end
   end
 end
