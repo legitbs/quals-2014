@@ -35,7 +35,7 @@ module Fritas
 
     def handle_connection(socket)
       socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
-      uuid = SecureRandom.uuid
+      uuid = Celluloid::UUID.generate
       @logger.info "connected from #{socket.peeraddr(false).inspect} => #{uuid}" 
       codec = Codec.new socket
       session = Session.new codec, uuid, @logger

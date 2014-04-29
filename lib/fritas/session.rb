@@ -42,7 +42,7 @@ module Fritas
       related = random_tag
 
       @collection.posts.add Messages::Post.new(
-                                               uuid: SecureRandom.uuid,
+                                               uuid: Celluloid::UUID.generate,
                                                title: 'key',
                                                body: "The flag is: #{$key}",
                                                tags: to_tags(["password=#{password}",
@@ -52,14 +52,14 @@ module Fritas
                                                )
       
       @collection.posts.add Messages::Post.new(
-                                               uuid: SecureRandom.uuid,
+                                               uuid: Celluloid::UUID.generate,
                                                title: 'hey kid',
-                                               body: "i'm a computer lol old meme",
+                                               body: "i'm a computer",
                                                tags: to_tags([related, random_tag]))
 
       4.times do 
         @collection.posts.add Messages::Post.new(
-                                                 uuid: SecureRandom.uuid,
+                                                 uuid: Celluloid::UUID.generate,
                                                  title: random_tag,
                                                  body: random_tag,
                                                  tags: to_tags([random_tag, random_tag]))
