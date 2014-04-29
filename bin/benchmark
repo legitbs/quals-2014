@@ -5,21 +5,38 @@ require 'pp'
 require 'socket'
 require 'fritas/codec'
 
-100.times do 
+time_lock = Mutex.new
+times = []
 
-  s = TCPSocket.new 'localhost', 6908
-  s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
+forks = 50.times.map do 
+  Thread.new do
+    s = TCPSocket.new 'localhost', 6908
+    s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
 
-  c = Fritas::Codec.new s
+    c = Fritas::Codec.new s
 
-  h = c.expect :Hello
-  pp h
-  c.write :Hello, uuid: h.uuid
+    h = c.expect :Hello
+    c.write :Hello, uuid: h.uuid
 
-  pp c.expect(:Ready)
+    c.expect(:Ready)
 
-  sleep 1
+    start = Time.now.to_f
+    10.times do
+      c.write :ListTagReq
+      resp = c.expect :ListTagResp
+      resp.tags.each do |t|
+        c.write :RelatedTagReq, tag: t
+        c.expect :RelatedTagResp
+      end
+    end
 
+    time_lock.synchronize do
+      times << (Time.now.to_f - start)
+    end
+    c.close
+  end
 end
 
-gets
+forks.each(&:join)
+
+puts times.inject(&:+).to_f / times.length
