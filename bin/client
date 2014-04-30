@@ -2,6 +2,7 @@
 $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'pp'
+require 'ecdsa'
 require 'socket'
 require 'choripan/codec'
 s = TCPSocket.new 'localhost', 6910
@@ -33,3 +34,39 @@ pp c.expect :GetPostResp
 badgetreq = Choripan::Messages::GetPostReq.new uuid: logsresp.logs[1].uuid, signature: l.signature
 c.write :GetPostReq, badgetreq
 pp c.receive
+
+logs = logsresp.logs
+
+group = ECDSA::Group::Secp256k1
+point_field = ECDSA::PrimeField.new group.order
+
+e1 = ECDSA.normalize_digest logs[0].uuid, group.bit_length
+e2 = ECDSA.normalize_digest logs[1].uuid, group.bit_length
+
+s1 = logs[0].signature.s.to_i
+s2 = logs[1].signature.s.to_i
+
+raise 'wat' if logs[0].signature.r != logs[1].signature.r
+r = logs[0].signature.r.to_i
+
+m = point_field.mod((e1 - e2) / (s1 - s2))
+
+top = point_field.mod((e1 * s2) - (e2 * s1))
+bottom = point_field.inverse(r * (s1 - s2))
+
+p = point_field.mod(top * bottom)
+
+pp p
+
+postsresp.uuids.each do |u|
+  sig = ECDSA.sign group, p, u, rand(420)
+  sig_message = Choripan::Messages::Signature.new(r: sig.r.to_s,
+                                                  s: sig.s.to_s,
+                                                  k: logs[0].signature.k)
+  get_message = Choripan::Messages::GetPostReq.new(uuid: u,
+                                                   signature: sig_message
+                                                   )
+
+  c.write :GetPostReq, get_message
+  pp c.expect :GetPostResp
+end
