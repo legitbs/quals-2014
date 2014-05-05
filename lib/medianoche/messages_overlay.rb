@@ -40,6 +40,7 @@ module Medianoche
     class ListPostReq
       def process(session)
         posts = nil
+        pp session.collection.posts.list
         if tag
           posts = session.collection.tags.get tag.tagname
         else

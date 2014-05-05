@@ -33,7 +33,6 @@ module Medianoche
         # salt isn't significant, we're providing an encryption oracle
         p.salt = 'legitbs'
         p.iterations = 100
-        p.hash_function = OpenSSL::Digest::SHA256
       end.bin_string
     end
   end

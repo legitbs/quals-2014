@@ -12,10 +12,19 @@ file 'lib/medianoche/messages.rb' => 'include/medianoche.proto' do |t|
 end
 
 desc "Package parts for distribution"
-task :dist => ['dist/medianoche/medianoche.proto']
+task :dist => ['dist/medianoche/medianoche.proto',
+               'dist/medianoche/medianoche.csv']
 
 directory 'dist/medianoche'
 
 file 'dist/medianoche/medianoche.proto' => ['include/medianoche.proto', 'dist/medianoche'] do |t|
   sh "cp #{t.prerequisites.first} #{t.name}"
 end
+
+file 'dist/medianoche/medianoche.csv' => ['include/medianoche.csv', 'dist/medianoche'] do |t|
+  sh "cp #{t.prerequisites.first} #{t.name}"
+end
+
+require 'warbler'
+desc "Package the executables into a jar"
+Warbler::Task.new
