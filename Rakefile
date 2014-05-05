@@ -19,3 +19,7 @@ directory 'dist/choripan'
 file 'dist/choripan/choripan.proto' => ['include/choripan.proto', 'dist/choripan'] do |t|
   sh "cp #{t.prerequisites.first} #{t.name}"
 end
+
+require 'warbler'
+desc "Package the executables into a jar"
+Warbler::Task.new
