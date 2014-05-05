@@ -15,39 +15,49 @@ c.write :Hello, uuid: h.uuid
 
 pp c.expect(:Ready)
 
-c.write :StorePostReq, post: Medianoche::Messages::Post.new(
-  title: 'bryce post', 
-  body: '420', 
-  tags: %w{abc def ghi}.map do |e|
-    Medianoche::Messages::Tag.new tagname: e
-  end)
-pp(resp = c.expect(:StorePostResp))
-
-c.write :StorePostReq, post: Medianoche::Messages::Post.new(
-  title: 'cool pist',
-  body: '888',
-  tags: ['password=asdf', 'abc'].map do |e|
-    Medianoche::Messages::Tag.new tagname: e
-  end)
-pp(resp2 = c.expect(:StorePostResp))
-
-c.write :ListPostReq
-pp c.expect :ListPostResp
-
-c.write :ListPostReq, tag: Medianoche::Messages::Tag.new(tagname: 'def')
-pp c.expect :ListPostResp
-
-c.write :GetPostReq, uuid: resp.uuid
-pp c.expect(:GetPostResp)
-
 c.write :ListTagReq
-pp c.expect :ListTagResp
+tagresp = c.expect :ListTagResp
 
-c.write :RelatedTagReq, tag: Medianoche::Messages::Tag.new(tagname: 'abc')
-pp c.expect :RelatedTagResp
+password_tag = nil
+tagresp.tags.each do |t|
+  c.write :RelatedTagReq, tag: t
+  resp = c.expect :RelatedTagResp
+  pp resp
 
-c.write :GetPostReq, uuid: resp2.uuid, password: 'asdf'
-pp c.expect :GetPostResp
+  next if resp.tags.nil?
 
-c.write :GetPostReq, uuid: resp2.uuid
-pp c.expect :ErrorResp
+  password_tag = resp.tags.detect do |t|
+    t.tagname =~ /password/
+  end
+
+  break if password_tag
+end
+
+password = password_tag.tagname.sub(/^password=/,'')
+
+pp password_tag
+c.write :ListPostReq, tag: password_tag
+listpostresp = c.expect :ListPostResp
+
+pp listpostresp
+
+c.write :GetPostReq, uuid: listpostresp.uuids.first, password: password
+payloadresp = c.expect :GetPostResp
+pp payloadresp
+
+c.write(
+        :StorePostReq, post: Medianoche::Messages::Post.new( 
+                                                            title: 'hey trophy',
+                                                            body: "The flag is: fart",
+                                                            tags: payloadresp.post.tags
+                                                            ))
+
+storeresp = c.expect :StorePostResp
+pp storeresp
+
+c.write :GetPostReq, uuid: storeresp.uuid, password: password
+oracleresp = c.expect :GetPostResp
+pp oracleresp
+
+pp payloadresp.post.body
+pp oracleresp.post.body
