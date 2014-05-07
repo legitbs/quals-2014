@@ -48,10 +48,6 @@ module Choripan
       include Beefcake::Message
     end
 
-    class Signature
-      include Beefcake::Message
-    end
-
     class PubKey
       include Beefcake::Message
     end
@@ -65,7 +61,7 @@ module Choripan
 
     class GetPostReq
       required :uuid, :bytes, 1
-      required :signature, Signature, 2
+      required :signature, :bytes, 2
     end
 
     class GetPostResp
@@ -98,14 +94,8 @@ module Choripan
 
     class Log
       required :uuid, :bytes, 1
-      required :signature, Signature, 2
+      required :signature, :bytes, 2
       required :timestamp, :uint64, 3
-    end
-
-    class Signature
-      required :r, :bytes, 1
-      required :s, :bytes, 2
-      required :k, PubKey, 3
     end
 
     class PubKey

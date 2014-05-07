@@ -5,6 +5,8 @@ require 'pp'
 require 'ecdsa'
 require 'socket'
 require 'choripan/codec'
+require 'choripan/packer'
+
 s = TCPSocket.new 'localhost', 6910
 s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
 
@@ -43,11 +45,16 @@ point_field = ECDSA::PrimeField.new group.order
 e1 = ECDSA.normalize_digest logs[0].uuid, group.bit_length
 e2 = ECDSA.normalize_digest logs[1].uuid, group.bit_length
 
-s1 = logs[0].signature.s.to_i
-s2 = logs[1].signature.s.to_i
+pack = Choripan::Packer.new
 
-raise 'wat' if logs[0].signature.r != logs[1].signature.r
-r = logs[0].signature.r.to_i
+up1 = pack.unpack(logs[0].signature)
+up2 = pack.unpack(logs[1].signature)
+
+s1 = up1[1]
+s2 = up2[1]
+
+raise 'wat' if up1[0] != up2[0]
+r = up1[0]
 
 m = point_field.mod((e1 - e2) / (s1 - s2))
 
@@ -60,11 +67,8 @@ pp p
 
 postsresp.uuids.each do |u|
   sig = ECDSA.sign group, p, u, rand(420)
-  sig_message = Choripan::Messages::Signature.new(r: sig.r.to_s,
-                                                  s: sig.s.to_s,
-                                                  k: logs[0].signature.k)
   get_message = Choripan::Messages::GetPostReq.new(uuid: u,
-                                                   signature: sig_message
+                                                   signature: pack.pack(sig.r, sig.s)
                                                    )
 
   c.write :GetPostReq, get_message
