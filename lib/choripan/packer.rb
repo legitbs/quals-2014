@@ -5,14 +5,8 @@ module Choripan
       s_buf = ''
       str.bytes.each_slice(2) do |slice|
         a, b = slice
-        r_top = a & 0xf0
-        r_bottom = b & 0x0f
-
-        s_top = b & 0xf0
-        s_bottom = a & 0x0f
-
-        r_buf << (r_top + r_bottom).chr
-        s_buf << (s_top + s_bottom).chr
+        r_buf << (a).chr
+        s_buf << (b).chr
       end
 
       [r_buf.to_i(36), s_buf.to_i(36)]
@@ -24,15 +18,7 @@ module Choripan
 
       r_p, s_p = pad(r_p, s_p)
 
-      r_p.bytes.zip(s_p.bytes).map do |r_b, s_b|
-        r_top = r_b & 0xf0
-        r_bottom = r_b & 0x0f
-
-        s_top = s_b & 0xf0
-        s_bottom = s_b & 0x0f
-
-        [r_top + s_bottom, s_top + r_bottom]
-      end.flatten.map(&:chr).join
+      r_p.bytes.zip(s_p.bytes).flatten.map(&:chr).join
     end
 
     private
