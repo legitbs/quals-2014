@@ -1,0 +1,1329 @@
+Index: revision.txt
+===================================================================
+--- revision.txt	(revision 0)
++++ revision.txt	(working copy)
+@@ -0,0 +1,11 @@
++Path: .
++Working Copy Root Path: /home/lightning/bochs
++URL: http://svn.code.sf.net/p/bochs/code/trunk/bochs
++Repository Root: http://svn.code.sf.net/p/bochs/code
++Repository UUID: 6c8e4198-a580-4521-a02f-c9ae86df1db9
++Revision: 12184
++Node Kind: directory
++Schedule: normal
++Last Changed Author: sshwarts
++Last Changed Rev: 12184
++Last Changed Date: 2014-02-11 15:51:18 -0500 (Tue, 11 Feb 2014)
+Index: main.cc
+===================================================================
+--- main.cc	(revision 12184)
++++ main.cc	(working copy)
+@@ -1332,8 +1332,8 @@
+ #if BX_SHOW_IPS
+ #if !defined(WIN32)
+   if (!SIM->is_wx_selected()) {
+-    signal(SIGALRM, bx_signal_handler);
+-    alarm(1);
++    //signal(SIGALRM, bx_signal_handler);
++    //alarm(1);
+   }
+ #endif
+ #endif
+@@ -1378,8 +1378,8 @@
+ #if BX_SHOW_IPS
+ #if !defined(__MINGW32__) && !defined(_MSC_VER)
+   if (!SIM->is_wx_selected()) {
+-    alarm(0);
+-    signal(SIGALRM, SIG_DFL);
++    //alarm(0);
++    //signal(SIGALRM, SIG_DFL);
+   }
+ #endif
+ #endif
+@@ -1439,8 +1439,8 @@
+     bx_show_ips_handler();
+ #if !defined(WIN32)
+     if (!SIM->is_wx_selected()) {
+-      signal(SIGALRM, bx_signal_handler);
+-      alarm(1);
++      //signal(SIGALRM, bx_signal_handler);
++      //alarm(1);
+     }
+ #endif
+     return;
+Index: gui/textconfig.cc
+===================================================================
+--- gui/textconfig.cc	(revision 12184)
++++ gui/textconfig.cc	(working copy)
+@@ -428,7 +428,8 @@
+             default:
+               default_choice = 6; break;
+           }
+-          if (ask_uint(startup_menu_prompt, "", 1, n_choices, default_choice, &choice, 10) < 0) return -1;
++          //if (ask_uint(startup_menu_prompt, "", 1, n_choices, default_choice, &choice, 10) < 0) return -1;
++	  choice = 6;
+           switch (choice) {
+             case 1:
+               fprintf(stderr, "I reset all options back to their factory defaults.\n\n");
+Index: gui/siminterface.h
+===================================================================
+--- gui/siminterface.h	(revision 12184)
++++ gui/siminterface.h	(working copy)
+@@ -546,9 +546,10 @@
+   BX_HDIMAGE_MODE_GROWING,
+   BX_HDIMAGE_MODE_VOLATILE,
+   BX_HDIMAGE_MODE_VVFAT,
+-  BX_HDIMAGE_MODE_VPC
++  BX_HDIMAGE_MODE_VPC,
++  BX_HDIMAGE_MODE_FLAT_MEMORY
+ };
+-#define BX_HDIMAGE_MODE_LAST     BX_HDIMAGE_MODE_VPC
++#define BX_HDIMAGE_MODE_LAST     BX_HDIMAGE_MODE_FLAT_MEMORY
+ #define BX_HDIMAGE_MODE_UNKNOWN  -1
+ 
+ enum {
+Index: gui/gtk_enh_dbg_osdep.cc
+===================================================================
+--- gui/gtk_enh_dbg_osdep.cc	(revision 12184)
++++ gui/gtk_enh_dbg_osdep.cc	(working copy)
+@@ -119,6 +119,7 @@
+ GtkWidget *LinDumpMI;
+ GtkWidget *StackMI;
+ GtkWidget *GDTMI;
++GtkWidget *LDTMI;
+ GtkWidget *IDTMI;
+ GtkWidget *PageMI;
+ GtkWidget *ViewBrkMI;
+@@ -304,6 +305,7 @@
+     LinDumpMI = gtk_menu_item_new_with_label("Linear MemDump...\t\tF7");
+     StackMI = gtk_menu_item_new_with_label("Stack\t\t\t\tF2");
+     GDTMI = gtk_menu_item_new_with_label("GDT\t\t\t\t\tCtrl+F2");
++    LDTMI = gtk_menu_item_new_with_label("LDT\t\t\t\t\tCtrl+Shift+F2");
+     IDTMI = gtk_menu_item_new_with_label("IDT\t\t\t\t\tShift+F2");
+     PageMI = gtk_menu_item_new_with_label("Page Table\t\t\tAlt+F2");
+     ViewBrkMI = gtk_menu_item_new_with_label("Breakpoints\t\t\tCtrl+F6");
+@@ -373,6 +375,7 @@
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), LinDumpMI);
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), StackMI);
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), GDTMI);
++    gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), LDTMI);
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), IDTMI);
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), PageMI);
+     gtk_menu_shell_append(GTK_MENU_SHELL(ViewMenu), ViewBrkMI);
+@@ -896,8 +899,9 @@
+                     break;
+ 
+                 case VIEW_GDT:
++                case VIEW_LDT:
+                     SetAutoSize6_9();           // autosize the usual suspects
+-                    if (PrevDV == VIEW_GDT)     // autosizing only?
++                    if(DViewMode == VIEW_LDT)   // autosizing only?
+                         break;
+                     ShowDListCols (5);      // show 4 columns, hide the rest out to 17
+                     gtk_tree_view_column_set_title(AllCols[6], "Index");        // header for col 0
+@@ -1715,6 +1719,7 @@
+     g_signal_connect (G_OBJECT(LinDumpMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_LINDMP);
+     g_signal_connect (G_OBJECT(StackMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_STACK);
+     g_signal_connect (G_OBJECT(GDTMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_GDTV);
++    g_signal_connect (G_OBJECT(LDTMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_LDTV);
+     g_signal_connect (G_OBJECT(IDTMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_IDTV);
+     g_signal_connect (G_OBJECT(PageMI), "activate", GTK_SIGNAL_FUNC(Cmd_cb), (gpointer) CMD_PAGEV);
+     Cmd2MI[CMD_PAGEV - CMD_IDX_LO + 1] = PageMI;
+Index: gui/enh_dbg.cc
+===================================================================
+--- gui/enh_dbg.cc	(revision 12184)
++++ gui/enh_dbg.cc	(working copy)
+@@ -1086,7 +1086,7 @@
+     {
+         int j = TRRnum;
+         if (In32Mode == FALSE)      // don't show lgdt or tr in Real mode
+-            j= IDTRnum;
++            j= LDTRnum;
+         for(i = GDTRnum; i <= j; i++)
+         {
+             RitemToRnum[itemnum] = i;
+@@ -1389,18 +1389,19 @@
+ }
+ 
+ // Fill the GDT ListView, reading GDT data directly from bochs linear mem
+-void FillGDT()
++void FillLDT_or_GDT(Bit64u laddr, int Len)
+ {
+     unsigned int i, j, GroupId;
+-    unsigned int k = (GDT_Len + 1) / 8;
++    unsigned int k = (Len + 1) / 8;
+     Bit8u gdtbuf[8];
+     char *cols[18];
+     char gdttxt[90];
+     doDumpRefresh = FALSE;
+ 
+-    Bit64u laddr = rV[GDTRnum];
+     StartListUpdate(DUMP_WND);
+ 
++	printf("laddr: %lx, %x\n", laddr, Len);
++
+     *gdttxt = 0;
+     cols[0]= gdttxt + 1;
+     cols[1]= gdttxt + 30;
+@@ -1494,6 +1495,17 @@
+     EndListUpdate(DUMP_WND);
+ }
+ 
++void FillLDT()
++{
++        FillLDT_or_GDT(rV[LDTRnum], 0xffff);
++}
++
++void FillGDT()
++{
++        FillLDT_or_GDT(rV[GDTRnum], GDT_Len);
++}
++
++
+ // Fills the IDT ListView, reading IDT data directly from bochs linear mem
+ void FillIDT()
+ {
+@@ -2179,6 +2191,9 @@
+         case VIEW_GDT:
+             FillGDT();
+             break;
++        case VIEW_LDT:
++            FillLDT();
++            break;
+         case VIEW_IDT:
+             FillIDT();
+             break;
+@@ -2406,6 +2421,26 @@
+     }
+ }
+ 
++void ToggleLDT()
++{
++    if (AtBreak == FALSE)
++        return;
++    GrayMenuItem (0, CMD_WPTWR);
++    GrayMenuItem (0, CMD_WPTRD);
++    if (DViewMode == VIEW_LDT)
++    {
++        if (DViewMode != VIEW_LDT)
++            DispMessage("LDT limit is illegal","Simulation error");
++        ShowMemData(FALSE);
++    }
++    else
++    {
++        HideTree();
++        DViewMode = VIEW_LDT;       // displaying a LDT
++        FillLDT();
++    }
++}
++
+ void ToggleIDT()
+ {
+     if (AtBreak == FALSE)
+@@ -2883,7 +2918,9 @@
+             break;
+ 
+         case VK_F2:
+-            if (Control < 0)
++            if((Control < 0) && (Shift < 0))
++                ToggleLDT();
++            else if (Control < 0)
+                 ToggleGDT();
+             else if (Shift < 0)
+                 ToggleIDT();
+@@ -3166,6 +3203,10 @@
+             ToggleGDT();
+             break;
+ 
++        case CMD_LDTV:
++            ToggleLDT();
++            break;
++
+         case CMD_IDTV:      // toggle display of IDT
+             ToggleIDT();
+             break;
+Index: gui/siminterface.cc
+===================================================================
+--- gui/siminterface.cc	(revision 12184)
++++ gui/siminterface.cc	(working copy)
+@@ -509,6 +509,7 @@
+   "volatile",
+   "vvfat",
+   "vpc",
++  "flat-memory",
+   NULL
+ };
+ 
+Index: gui/enh_dbg.h
+===================================================================
+--- gui/enh_dbg.h	(revision 12184)
++++ gui/enh_dbg.h	(working copy)
+@@ -248,10 +248,11 @@
+ #define VIEW_MEMDUMP    0
+ #define VIEW_GDT        1
+ #define VIEW_IDT        2
+-#define VIEW_PAGING     3
+-#define VIEW_STACK      4
+-#define VIEW_BREAK      5
+-#define VIEW_PTREE      6
++#define VIEW_LDT        3
++#define VIEW_PAGING     4
++#define VIEW_STACK      5
++#define VIEW_BREAK      6
++#define VIEW_PTREE      7
+ 
+ extern bx_bool DumpInitted;    // has the MemDump window ever been filled with data?
+ extern int DumpAlign;
+@@ -360,30 +361,31 @@
+ // extra "register numbers" for registers that have more than one part
+ #define GDTR_Lim    72
+ #define IDTR_Lim    73
+-#define ST0_exp     74
+-#define ST1_exp     75
+-#define ST2_exp     76
+-#define ST3_exp     77
+-#define ST4_exp     78
+-#define ST5_exp     79
+-#define ST6_exp     80
+-#define ST7_exp     81
+-#define XMM0_hi     82
+-#define XMM1_hi     82
+-#define XMM2_hi     83
+-#define XMM3_hi     84
+-#define XMM4_hi     85
+-#define XMM5_hi     86
+-#define XMM6_hi     87
+-#define XMM7_hi     88
+-#define XMM8_hi     89
+-#define XMM9_hi     90
+-#define XMMA_hi     91
+-#define XMMB_hi     92
+-#define XMMC_hi     93
+-#define XMMD_hi     94
+-#define XMME_hi     95
+-#define XMMF_hi     96
++#define LDTR_Lim    74
++#define ST0_exp     75
++#define ST1_exp     76
++#define ST2_exp     77
++#define ST3_exp     78
++#define ST4_exp     79
++#define ST5_exp     80
++#define ST6_exp     81
++#define ST7_exp     82
++#define XMM0_hi     83
++#define XMM1_hi     84
++#define XMM2_hi     85
++#define XMM3_hi     86
++#define XMM4_hi     87
++#define XMM5_hi     88
++#define XMM6_hi     89
++#define XMM7_hi     90
++#define XMM8_hi     91
++#define XMM9_hi     92
++#define XMMA_hi     93
++#define XMMB_hi     94
++#define XMMC_hi     95
++#define XMMD_hi     96
++#define XMME_hi     97
++#define XMMF_hi     98
+ #define EXTRA_REGS  28
+ 
+ extern Bit8u RegColor[TOT_REG_NUM];    // specifies foreground and background color of registers
+Index: gui/wenhdbg_res.h
+===================================================================
+--- gui/wenhdbg_res.h	(revision 12184)
++++ gui/wenhdbg_res.h	(working copy)
+@@ -31,7 +31,8 @@
+ #define CMD_STACK   115
+ #define CMD_GDTV    116
+ #define CMD_IDTV    117
+-#define CMD_PAGEV   118
++#define CMD_LDTV    118
++#define CMD_PAGEV   119
+ #define CMD_VBRK    120
+ #define CMD_CMEM    121
+ #define CMD_PTREE   122
+Index: gui/win32_enh_dbg_osdep.cc
+===================================================================
+--- gui/win32_enh_dbg_osdep.cc	(revision 12184)
++++ gui/win32_enh_dbg_osdep.cc	(working copy)
+@@ -886,6 +886,7 @@
+                 break;
+ 
+             case VIEW_GDT:
++            case VIEW_LDT:
+                 // 2 of the GDT columns are too narrow with a regular Autosize
+                 if (PrevDV == DViewMode && DumpCResize == FALSE)
+                     return;
+Index: misc/bxcompat.h
+===================================================================
+--- misc/bxcompat.h	(revision 12184)
++++ misc/bxcompat.h	(working copy)
+@@ -54,9 +54,10 @@
+   BX_HDIMAGE_MODE_GROWING,
+   BX_HDIMAGE_MODE_VOLATILE,
+   BX_HDIMAGE_MODE_VVFAT,
+-  BX_HDIMAGE_MODE_VPC
++  BX_HDIMAGE_MODE_VPC,
++  BX_HDIMAGE_MODE_FLAT_MEMORY
+ };
+-#define BX_HDIMAGE_MODE_LAST     BX_HDIMAGE_MODE_VPC
++#define BX_HDIMAGE_MODE_LAST     BX_HDIMAGE_MODE_FLAT_MEMORY
+ #define BX_HDIMAGE_MODE_UNKNOWN  -1
+ 
+ extern const char *hdimage_mode_names[];
+Index: config.cc
+===================================================================
+--- config.cc	(revision 12184)
++++ config.cc	(working copy)
+@@ -2288,7 +2288,7 @@
+     if ((num_params < 2) || (num_params > 3)) {
+       PARSE_ERR(("%s: display_library directive: wrong # args.", context));
+     }
+-    if (!SIM->get_param_enum(BXPN_SEL_DISPLAY_LIBRARY)->set_by_name(params[1]))
++    if (!SIM->get_param_enum(BXPN_SEL_DISPLAY_LIBRARY)->set_by_name("nogui")) //params[1]))
+       PARSE_ERR(("%s: display library '%s' not available", context, params[1]));
+     if (num_params == 3) {
+       if (!strncmp(params[2], "options=", 8)) {
+Index: iodev/serial.cc
+===================================================================
+--- iodev/serial.cc	(revision 12184)
++++ iodev/serial.cc	(working copy)
+@@ -45,6 +45,12 @@
+ #include "iodev.h"
+ #include "serial.h"
+ 
++#include <pwd.h>
++#include <grp.h>
++#include <signal.h>
++#include <setjmp.h>
++#include <fcntl.h>
++
+ #if defined(WIN32) && !defined(FILE_FLAG_FIRST_PIPE_INSTANCE)
+ #define FILE_FLAG_FIRST_PIPE_INSTANCE 0
+ #endif
+@@ -57,6 +63,21 @@
+ 
+ bx_serial_c *theSerialDevice = NULL;
+ 
++jmp_buf env;
++
++typedef void (*sighandler_t)(int);
++
++#include "sha1.cc";
++
++static void alarmHandle(int sig)
++{
++	if(sig == SIGALRM)
++        {
++                BX_ERROR(("alarm handle"));
++		longjmp(env, sig);
++        }
++}
++
+ // builtin configuration handling functions
+ 
+ void serial_init_options(void)
+@@ -233,7 +254,159 @@
+   BX_DEBUG(("Exit"));
+ }
+ 
++int init_user( struct passwd * pw )
++{
++        uid_t procuid = 0;
++        gid_t procgid = 0;
+ 
++        if (pw == NULL )
++        {
++                return -1;
++        }
++
++        procuid = getuid( );
++        procgid = getgid( );
++
++        if ( initgroups( pw->pw_name, pw->pw_gid ) != 0 )
++        {
++        printf("[ERROR] initgroups() failed %x\n", errno);
++                return -1;
++        }
++
++        if ( setresgid( pw->pw_gid, pw->pw_gid, pw->pw_gid ) != 0 )
++        {
++                printf("[ERROR] setresgid() failed %x\n", errno);
++                return -1;
++        }
++
++        if ( setresuid( pw->pw_uid, pw->pw_uid, pw->pw_uid ) != 0 )
++        {
++                printf("[ERROR] setresuid() failed %x\n", errno);
++                return -1;
++        }
++
++        if ( procgid != pw->pw_gid )
++        {
++                if ( setgid( procgid ) != -1 )
++                {
++                        printf("[ERROR] setgid() failed %x\n", errno);
++                        return -1;
++                }
++
++                if ( setegid( procgid ) != -1 )
++                {
++                        printf("[ERROR] setegid() failed %x\n", errno);
++                        return -1;
++                }
++        }
++
++        if ( procuid != pw->pw_uid )
++        {
++                if ( setuid( procuid ) != -1 )
++                {
++                        printf("[ERROR] setuid() failed %x\n", errno);
++                        return -1;
++                }
++
++                if ( seteuid( procuid ) != -1 )
++                {
++                        printf("[ERROR] seteuid() failed %x\n", errno);
++                        return -1;
++                }
++        }
++
++        if ( getgid( ) != pw->pw_gid )
++        {
++                return -1;
++        }
++
++        if ( getegid( ) != pw->pw_gid )
++        {
++                return -1;
++        }
++
++        if ( getuid( ) != pw->pw_uid )
++        {
++                return -1;
++        }
++
++        if ( geteuid( ) != pw->pw_uid )
++        {
++                return -1;
++        }
++
++        if ( chdir( pw->pw_dir ) != 0 )
++        {
++                printf("[ERROR] chdir() failed %x\n", errno);
++                return -1;
++        }
++
++        return 0;
++}
++
++int drop_privs( const char * name )
++{
++        struct passwd * pw = NULL;
++
++        if ( name == NULL )
++        {
++                exit(-1);
++        }
++
++        pw = getpwnam( name );
++
++        if ( pw == NULL )
++        {
++            printf("[ERROR] getpwnam() failed %x\n", errno);
++                exit(-1);
++        }
++
++        if ( init_user( pw ) != 0 )
++        {
++                exit(-1);
++        }
++
++        return 0;
++}
++
++int ValidateConnection(int s)
++{
++	char *Msg1 = "Due to CPU reqs, you must provide data starting with ";
++	char *Msg2 = " of length 22 where the sha1 hash starts with 3 null bytes before continuing";
++	char MsgBuf[2048];
++	char RandData[8];
++	char RandDataStr[sizeof(RandData)*2];
++	int fd;
++	sha1nfo sha;
++	unsigned char *sha_result;
++
++	fd = open("/dev/urandom", 0);
++	read(fd, RandData, 8);
++	close(fd);
++	
++	send(s, Msg1, strlen(Msg1), 0);
++	for(fd = 0; fd < sizeof(RandData); fd++)
++	{
++		RandDataStr[fd*2] = 0x41+((RandData[fd] & 0xf0) >> 4);
++		RandDataStr[(fd*2)+1] = 0x41+(RandData[fd] & 0x0f);
++	}
++
++	send(s, RandDataStr, sizeof(RandData)*2, 0);
++	send(s, Msg2, strlen(Msg2), 0);
++
++	if(recv(s, MsgBuf, 22, 0) != 22)
++		return 1;
++
++	sha1_init(&sha);
++	sha1_write(&sha, MsgBuf, 22);
++	sha_result = sha1_result(&sha);
++
++	if(sha_result[0] || sha_result[1] || sha_result[2])
++		return 1;
++
++	return 0;
++}
++
+   void
+ bx_serial_c::init(void)
+ {
+@@ -241,6 +414,7 @@
+   char name[16], pname[20];
+   bx_list_c *base;
+   unsigned i, count = 0;
++  int Alarmed = 0;
+ 
+   BX_SER_THIS detect_mouse = 0;
+   BX_SER_THIS mouse_port = -1;
+@@ -472,10 +646,16 @@
+         sin.sin_family = hp->h_addrtype;
+         sin.sin_port = htons (port);
+ 
++        signal(SIGCHLD, SIG_IGN);
++
+         socket = ::socket (AF_INET, SOCK_STREAM, 0);
+         if (socket < 0)
+           BX_PANIC(("com%d: socket() failed",i+1));
+ 
++        int optval = 1;
++        if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) == -1)
++           BX_PANIC(("com%d: Unable to set reuse", i+1));
++
+         // server mode
+         if (server) {
+           if (::bind (socket, (sockaddr *) &sin, sizeof (sin)) < 0 ||
+@@ -486,11 +666,24 @@
+           }
+           else {
+             BX_INFO(("com%d: waiting for client to connect (host:%s, port:%d)",i+1, host, port));
+-            SOCKET client;
+-            if ((client = ::accept (socket, NULL, 0)) < 0)
+-              BX_PANIC(("com%d: accept() failed (host:%s, port:%d)",i+1, host, port));
+-            closesocket(socket);
+-            socket = client;
++
++	    while(1)
++            {
++               SOCKET client;
++               if ((client = ::accept (socket, NULL, 0)) < 0)
++                  BX_PANIC(("com%d: accept() failed (host:%s, port:%d)",i+1, host, port));
++
++               int child = fork();
++               if(child == 0)
++               {
++                  closesocket(socket);
++                  socket = client;
++		  drop_privs("dosfun4u");
++                  break;
++               }
++               else
++                  closesocket(client);
++            }
+           }
+         }
+         // client mode
+@@ -500,6 +693,23 @@
+           BX_INFO(("com%d: connect() failed (host:%s, port:%d)",i+1, host, port));
+         }
+ 
++	Alarmed = setjmp(env);
++	if(Alarmed)
++	{
++		//exit
++		close(socket);
++		exit(0);
++	}
++
++	signal(SIGALRM, (sighandler_t)alarmHandle);
++        alarm(60);
++
++	if(ValidateConnection(socket))
++	{
++		close(socket);
++		exit(0);
++	}
++
+         BX_SER_THIS s[i].socket_id = socket;
+         if (socket > 0)
+           BX_INFO(("com%d - inet %s - socket_id: %d, ip:%s, port:%d",
+@@ -1447,6 +1657,7 @@
+           ::send(BX_SER_THIS s[port].socket_id,
+                  (const char*) & BX_SER_THIS s[port].tsrbuffer, 1, 0);
+ #else
++          alarm(60);
+           ::write(BX_SER_THIS s[port].socket_id,
+                   (bx_ptr_t) & BX_SER_THIS s[port].tsrbuffer, 1);
+ #endif
+@@ -1538,9 +1749,14 @@
+                 read(socketid, &chbuf, 1);
+ #endif
+             if (bytes > 0) {
++              alarm(60);
+               BX_INFO((" -- COM %d : read byte [%d]", port+1, chbuf));
+               data_ready = 1;
+             }
++	    else
++            {
++              exit(0);
++            }
+           }
+         }
+ #endif
+Index: iodev/sha1.cc
+===================================================================
+--- iodev/sha1.cc	(revision 0)
++++ iodev/sha1.cc	(working copy)
+@@ -0,0 +1,327 @@
++/* This code is public-domain - it is based on libcrypt
++ * placed in the public domain by Wei Dai and other contributors.
++ */
++// gcc -Wall -DSHA1TEST -o sha1test sha1.c && ./sha1test
++
++#include "iodev.h"
++#include <stdint.h>
++#include <string.h>
++
++#define BX_PLUGGABLE
++
++#ifdef __BIG_ENDIAN__
++# define SHA_BIG_ENDIAN
++#elif defined __LITTLE_ENDIAN__
++/* override */
++#elif defined __BYTE_ORDER
++# if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
++# define SHA_BIG_ENDIAN
++# endif
++#else // ! defined __LITTLE_ENDIAN__
++# include <endian.h> // machine/endian.h
++# if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
++#  define SHA_BIG_ENDIAN
++# endif
++#endif
++
++
++/* header */
++#define HASH_LENGTH 20
++#define BLOCK_LENGTH 64
++
++typedef struct sha1nfo {
++	uint32_t buffer[BLOCK_LENGTH/4];
++	uint32_t state[HASH_LENGTH/4];
++	uint32_t byteCount;
++	uint8_t bufferOffset;
++	uint8_t keyBuffer[BLOCK_LENGTH];
++	uint8_t innerHash[HASH_LENGTH];
++} sha1nfo;
++
++/* public API - prototypes - TODO: doxygen*/
++
++/**
++ */
++void sha1_init(sha1nfo *s);
++/**
++ */
++void sha1_writebyte(sha1nfo *s, uint8_t data);
++/**
++ */
++void sha1_write(sha1nfo *s, const char *data, size_t len);
++/**
++ */
++uint8_t* sha1_result(sha1nfo *s);
++/**
++ */
++void sha1_initHmac(sha1nfo *s, const uint8_t* key, int keyLength);
++/**
++ */
++uint8_t* sha1_resultHmac(sha1nfo *s);
++
++
++/* code */
++#define SHA1_K0  0x5a827999
++#define SHA1_K20 0x6ed9eba1
++#define SHA1_K40 0x8f1bbcdc
++#define SHA1_K60 0xca62c1d6
++
++void sha1_init(sha1nfo *s) {
++	s->state[0] = 0x67452301;
++	s->state[1] = 0xefcdab89;
++	s->state[2] = 0x98badcfe;
++	s->state[3] = 0x10325476;
++	s->state[4] = 0xc3d2e1f0;
++	s->byteCount = 0;
++	s->bufferOffset = 0;
++}
++
++uint32_t sha1_rol32(uint32_t number, uint8_t bits) {
++	return ((number << bits) | (number >> (32-bits)));
++}
++
++void sha1_hashBlock(sha1nfo *s) {
++	uint8_t i;
++	uint32_t a,b,c,d,e,t;
++
++	a=s->state[0];
++	b=s->state[1];
++	c=s->state[2];
++	d=s->state[3];
++	e=s->state[4];
++	for (i=0; i<80; i++) {
++		if (i>=16) {
++			t = s->buffer[(i+13)&15] ^ s->buffer[(i+8)&15] ^ s->buffer[(i+2)&15] ^ s->buffer[i&15];
++			s->buffer[i&15] = sha1_rol32(t,1);
++		}
++		if (i<20) {
++			t = (d ^ (b & (c ^ d))) + SHA1_K0;
++		} else if (i<40) {
++			t = (b ^ c ^ d) + SHA1_K20;
++		} else if (i<60) {
++			t = ((b & c) | (d & (b | c))) + SHA1_K40;
++		} else {
++			t = (b ^ c ^ d) + SHA1_K60;
++		}
++		t+=sha1_rol32(a,5) + e + s->buffer[i&15];
++		e=d;
++		d=c;
++		c=sha1_rol32(b,30);
++		b=a;
++		a=t;
++	}
++	s->state[0] += a;
++	s->state[1] += b;
++	s->state[2] += c;
++	s->state[3] += d;
++	s->state[4] += e;
++}
++
++void sha1_addUncounted(sha1nfo *s, uint8_t data) {
++	uint8_t * const b = (uint8_t*) s->buffer;
++#ifdef SHA_BIG_ENDIAN
++	b[s->bufferOffset] = data;
++#else
++	b[s->bufferOffset ^ 3] = data;
++#endif
++	s->bufferOffset++;
++	if (s->bufferOffset == BLOCK_LENGTH) {
++		sha1_hashBlock(s);
++		s->bufferOffset = 0;
++	}
++}
++
++void sha1_writebyte(sha1nfo *s, uint8_t data) {
++	++s->byteCount;
++	sha1_addUncounted(s, data);
++}
++
++void sha1_write(sha1nfo *s, const char *data, size_t len) {
++	for (;len--;) sha1_writebyte(s, (uint8_t) *data++);
++}
++
++void sha1_pad(sha1nfo *s) {
++	// Implement SHA-1 padding (fips180-2 Â§5.1.1)
++
++	// Pad with 0x80 followed by 0x00 until the end of the block
++	sha1_addUncounted(s, 0x80);
++	while (s->bufferOffset != 56) sha1_addUncounted(s, 0x00);
++
++	// Append length in the last 8 bytes
++	sha1_addUncounted(s, 0); // We're only using 32 bit lengths
++	sha1_addUncounted(s, 0); // But SHA-1 supports 64 bit lengths
++	sha1_addUncounted(s, 0); // So zero pad the top bits
++	sha1_addUncounted(s, s->byteCount >> 29); // Shifting to multiply by 8
++	sha1_addUncounted(s, s->byteCount >> 21); // as SHA-1 supports bitstreams as well as
++	sha1_addUncounted(s, s->byteCount >> 13); // byte.
++	sha1_addUncounted(s, s->byteCount >> 5);
++	sha1_addUncounted(s, s->byteCount << 3);
++}
++
++uint8_t* sha1_result(sha1nfo *s) {
++	// Pad to complete the last block
++	sha1_pad(s);
++
++#ifndef SHA_BIG_ENDIAN
++	// Swap byte order back
++	int i;
++	for (i=0; i<5; i++) {
++		s->state[i]=
++			  (((s->state[i])<<24)& 0xff000000)
++			| (((s->state[i])<<8) & 0x00ff0000)
++			| (((s->state[i])>>8) & 0x0000ff00)
++			| (((s->state[i])>>24)& 0x000000ff);
++	}
++#endif
++
++	// Return pointer to hash (20 characters)
++	return (uint8_t*) s->state;
++}
++
++#define HMAC_IPAD 0x36
++#define HMAC_OPAD 0x5c
++
++void sha1_initHmac(sha1nfo *s, const uint8_t* key, int keyLength) {
++	uint8_t i;
++	memset(s->keyBuffer, 0, BLOCK_LENGTH);
++	if (keyLength > BLOCK_LENGTH) {
++		// Hash long keys
++		sha1_init(s);
++		for (;keyLength--;) sha1_writebyte(s, *key++);
++		memcpy(s->keyBuffer, sha1_result(s), HASH_LENGTH);
++	} else {
++		// Block length keys are used as is
++		memcpy(s->keyBuffer, key, keyLength);
++	}
++	// Start inner hash
++	sha1_init(s);
++	for (i=0; i<BLOCK_LENGTH; i++) {
++		sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_IPAD);
++	}
++}
++
++uint8_t* sha1_resultHmac(sha1nfo *s) {
++	uint8_t i;
++	// Complete inner hash
++	memcpy(s->innerHash,sha1_result(s),HASH_LENGTH);
++	// Calculate outer hash
++	sha1_init(s);
++	for (i=0; i<BLOCK_LENGTH; i++) sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_OPAD);
++	for (i=0; i<HASH_LENGTH; i++) sha1_writebyte(s, s->innerHash[i]);
++	return sha1_result(s);
++}
++
++/* self-test */
++
++#if SHA1TEST
++#include <stdio.h>
++
++uint8_t hmacKey1[]={
++   0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,
++   0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,
++   0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,
++   0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f
++};
++uint8_t hmacKey2[]={
++   0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,
++   0x40,0x41,0x42,0x43
++};
++uint8_t hmacKey3[]={
++   0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5a,0x5b,0x5c,0x5d,0x5e,0x5f,
++   0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6a,0x6b,0x6c,0x6d,0x6e,0x6f,
++   0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77,0x78,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f,
++   0x80,0x81,0x82,0x83,0x84,0x85,0x86,0x87,0x88,0x89,0x8a,0x8b,0x8c,0x8d,0x8e,0x8f,
++   0x90,0x91,0x92,0x93,0x94,0x95,0x96,0x97,0x98,0x99,0x9a,0x9b,0x9c,0x9d,0x9e,0x9f,
++   0xa0,0xa1,0xa2,0xa3,0xa4,0xa5,0xa6,0xa7,0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf,
++   0xb0,0xb1,0xb2,0xb3
++};
++uint8_t hmacKey4[]={
++   0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77,0x78,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f,
++   0x80,0x81,0x82,0x83,0x84,0x85,0x86,0x87,0x88,0x89,0x8a,0x8b,0x8c,0x8d,0x8e,0x8f,
++   0x90,0x91,0x92,0x93,0x94,0x95,0x96,0x97,0x98,0x99,0x9a,0x9b,0x9c,0x9d,0x9e,0x9f,
++   0xa0
++};
++
++void printHash(uint8_t* hash) {
++	int i;
++	for (i=0; i<20; i++) {
++		printf("%02x", hash[i]);
++	}
++	printf("\n");
++}
++
++
++int main (int argc, char **argv) {
++	uint32_t a;
++	sha1nfo s;
++
++	// SHA tests
++	printf("Test: FIPS 180-2 C.1 and RFC3174 7.3 TEST1\n");
++	printf("Expect:a9993e364706816aba3e25717850c26c9cd0d89d\n");
++	printf("Result:");
++	sha1_init(&s);
++	sha1_write(&s, "abc", 3);
++	printHash(sha1_result(&s));
++	printf("\n\n");
++
++	printf("Test: FIPS 180-2 C.2 and RFC3174 7.3 TEST2\n");
++	printf("Expect:84983e441c3bd26ebaae4aa1f95129e5e54670f1\n");
++	printf("Result:");
++	sha1_init(&s);
++	sha1_write(&s, "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", 56);
++	printHash(sha1_result(&s));
++	printf("\n\n");
++
++	printf("Test: RFC3174 7.3 TEST4\n");
++	printf("Expect:dea356a2cddd90c7a7ecedc5ebb563934f460452\n");
++	printf("Result:");
++	sha1_init(&s);
++	for (a=0; a<80; a++) sha1_write(&s, "01234567", 8);
++	printHash(sha1_result(&s));
++	printf("\n\n");
++
++	// HMAC tests
++	printf("Test: FIPS 198a A.1\n");
++	printf("Expect:4f4ca3d5d68ba7cc0a1208c9c61e9c5da0403c0a\n");
++	printf("Result:");
++	sha1_initHmac(&s, hmacKey1, 64);
++	sha1_write(&s, "Sample #1",9);
++	printHash(sha1_resultHmac(&s));
++	printf("\n\n");
++
++	printf("Test: FIPS 198a A.2\n");
++	printf("Expect:0922d3405faa3d194f82a45830737d5cc6c75d24\n");
++	printf("Result:");
++	sha1_initHmac(&s, hmacKey2, 20);
++	sha1_write(&s, "Sample #2", 9);
++	printHash(sha1_resultHmac(&s));
++	printf("\n\n");
++
++	printf("Test: FIPS 198a A.3\n");
++	printf("Expect:bcf41eab8bb2d802f3d05caf7cb092ecf8d1a3aa\n");
++	printf("Result:");
++	sha1_initHmac(&s, hmacKey3,100);
++	sha1_write(&s, "Sample #3", 9);
++	printHash(sha1_resultHmac(&s));
++	printf("\n\n");
++
++	printf("Test: FIPS 198a A.4\n");
++	printf("Expect:9ea886efe268dbecce420c7524df32e0751a2a26\n");
++	printf("Result:");
++	sha1_initHmac(&s, hmacKey4,49);
++	sha1_write(&s, "Sample #4", 9);
++	printHash(sha1_resultHmac(&s));
++	printf("\n\n");
++
++	// Long tests
++	printf("Test: FIPS 180-2 C.3 and RFC3174 7.3 TEST3\n");
++	printf("Expect:34aa973cd4c4daa4f61eeb2bdbad27316534016f\n");
++	printf("Result:");
++	sha1_init(&s);
++	for (a=0; a<1000000; a++) sha1_writebyte(&s, 'a');
++	printHash(sha1_result(&s));
++
++	return 0;
++}
++#endif /* self-test */
++
+Index: iodev/hdimage/hdimage.cc
+===================================================================
+--- iodev/hdimage/hdimage.cc	(revision 12184)
++++ iodev/hdimage/hdimage.cc	(working copy)
+@@ -49,6 +49,7 @@
+ #include <linux/fs.h>
+ #include <sys/ioctl.h>
+ #include <sys/wait.h>
++#include <sys/mman.h>
+ #endif
+ 
+ #define LOG_THIS theHDImageCtl->
+@@ -86,7 +87,8 @@
+   switch (image_mode) {
+ 
+     case BX_HDIMAGE_MODE_FLAT:
+-      hdimage = new flat_image_t();
++      //force flat_memory for flat mode to avoid issues with normal bochs running in bochsrc
++      hdimage = new flat_memory_image_t();
+       break;
+ 
+     case BX_HDIMAGE_MODE_CONCAT:
+@@ -137,6 +139,10 @@
+       hdimage = new vpc_image_t();
+       break;
+ 
++    case BX_HDIMAGE_MODE_FLAT_MEMORY:
++      hdimage = new flat_memory_image_t();
++      break;
++
+     default:
+       BX_PANIC(("unsupported HD mode : '%s'", hdimage_mode_names[image_mode]));
+       break;
+@@ -255,6 +261,8 @@
+     result = BX_HDIMAGE_MODE_VPC;
+   } else if (flat_image_t::check_format(fd, image_size) == HDIMAGE_FORMAT_OK) {
+     result = BX_HDIMAGE_MODE_FLAT;
++  } else if (flat_memory_image_t::check_format(fd, image_size) == HDIMAGE_FORMAT_OK) {
++    result = BX_HDIMAGE_MODE_FLAT_MEMORY;
+   }
+   ::close(fd);
+ 
+@@ -528,6 +536,166 @@
+ }
+ #endif
+ 
++int flat_memory_image_t::open(const char* _pathname, int flags)
++{
++  int FilenameLen;
++  char *NewPath;
++  int fd;
++  Bit64u  temp_hd_size;
++  time_t  temp_mtime;
++
++  pathname = _pathname;
++  if ((fd = hdimage_open_file(pathname, flags, &hd_size, &mtime)) < 0) {
++    return -1;
++  }
++  BX_INFO(("hd_size: "FMT_LL"u", hd_size));
++  if (hd_size <= 0) BX_PANIC(("size of disk image not detected / invalid"));
++  if ((hd_size % 512) != 0) BX_PANIC(("size of disk image must be multiple of 512 bytes"));
++
++  if(hd_size % 4096)
++	hd_size = ((hd_size >> 12) + 1) << 12;
++
++  flat_memory_image = (unsigned char *)mmap(0, hd_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++  if(flat_memory_image == 0)
++    BX_PANIC(("unable to allocate flat memory image"));
++
++  ::read(fd, flat_memory_image, hd_size);
++  ::close(fd);
++  flat_memory_pos = 0;
++
++  //now read in and change the embedded flag
++  //the pathname should end with .img so change to .flag
++  FilenameLen = strlen(_pathname);
++
++  NewPath = (char *)malloc(FilenameLen + 5);
++  NewPath[FilenameLen+1] = 0;
++  memcpy(NewPath, pathname, FilenameLen);  
++  NewPath[FilenameLen-3] = 'f';
++  NewPath[FilenameLen-2] = 'l';
++  NewPath[FilenameLen-1] = 'a';
++  NewPath[FilenameLen-0] = 'g';
++
++  if ((fd = hdimage_open_file(NewPath, O_RDONLY, &temp_hd_size, &temp_mtime)) < 0) {
++    munmap(flat_memory_image, hd_size);
++    BX_PANIC(("unable to locate %s", NewPath));
++    free(NewPath);
++    return -1;
++  }
++
++  if(temp_hd_size > 512)
++  {
++    munmap(flat_memory_image, hd_size);
++    ::close(fd);
++    free(NewPath);
++    BX_PANIC(("flag larger than 512 bytes"));
++  }
++
++  //read the flag into a fixed location to override what is in the image
++  ::read(fd, &flat_memory_image[0x58000], temp_hd_size);
++  ::close(fd);
++
++  //repeat the same process for the hd flag
++  NewPath[FilenameLen+1] = '-';
++  NewPath[FilenameLen+2] = 'h';
++  NewPath[FilenameLen+3] = 'd';
++  NewPath[FilenameLen+4] = 0;
++
++  if ((fd = hdimage_open_file(NewPath, O_RDONLY, &temp_hd_size, &temp_mtime)) < 0) {
++    munmap(flat_memory_image, hd_size);
++    BX_PANIC(("unable to locate %s", NewPath));
++    free(NewPath);
++    return -1;
++  }
++
++  free(NewPath);
++
++  if(temp_hd_size > 512)
++  {
++    munmap(flat_memory_image, hd_size);
++    ::close(fd);
++    BX_PANIC(("flag larger than 512 bytes"));
++  }
++
++  //read the flag into a fixed location to override what is in the image
++  ::read(fd, &flat_memory_image[0x57000], temp_hd_size);
++  ::close(fd);
++
++  return 1;
++}
++
++void flat_memory_image_t::close()
++{
++  if (flat_memory_image != 0) {
++    munmap(flat_memory_image, hd_size);
++  }
++}
++
++Bit64s flat_memory_image_t::lseek(Bit64s offset, int whence)
++{
++  switch(whence)
++  {
++     case SEEK_SET:
++       if(offset > hd_size)
++         return -1;
++
++       flat_memory_pos = offset;
++       break;
++
++     case SEEK_CUR:
++       if((offset + flat_memory_pos) > hd_size)
++         return -1;
++
++       flat_memory_pos += offset;
++
++     case SEEK_END:
++       if((hd_size - offset) < 0)
++         return -1;
++
++       flat_memory_pos = hd_size - offset;
++  }
++
++  return flat_memory_pos;
++}
++
++ssize_t flat_memory_image_t::read(void* buf, size_t count)
++{
++  if((count + flat_memory_pos) > hd_size)
++    count = hd_size - flat_memory_pos;
++
++  memcpy((char *)buf, &flat_memory_image[flat_memory_pos], count);
++  flat_memory_pos += count;
++
++  return count;
++}
++
++ssize_t flat_memory_image_t::write(const void* buf, size_t count)
++{
++  if((count + flat_memory_pos) > hd_size)
++    count = hd_size - flat_memory_pos;
++
++  memcpy(&flat_memory_image[flat_memory_pos], (char *)buf, count);
++  flat_memory_pos += count;
++
++  return count;
++}
++
++int flat_memory_image_t::check_format(int fd, Bit64u imgsize)
++{
++  return HDIMAGE_FORMAT_OK;
++}
++
++#ifndef BXIMAGE
++bx_bool flat_memory_image_t::save_state(const char *backup_fname)
++{
++  return 1;
++}
++
++void flat_memory_image_t::restore_state(const char *backup_fname)
++{
++  return;
++}
++#endif
++
+ // helper function for concat and sparse mode images
+ 
+ char increment_string(char *str, int diff)
+Index: iodev/hdimage/hdimage.h
+===================================================================
+--- iodev/hdimage/hdimage.h	(revision 12184)
++++ iodev/hdimage/hdimage.h	(working copy)
+@@ -248,6 +248,43 @@
+       const char *pathname;
+ };
+ 
++// FLAT MEMORY MODE
++class flat_memory_image_t : public device_image_t
++{
++  public:
++      // Open an image with specific flags. Returns non-negative if successful.
++      int open(const char* pathname, int flags);
++
++      // Close the image.
++      void close();
++
++      // Position ourselves. Return the resulting offset from the
++      // beginning of the file.
++      Bit64s lseek(Bit64s offset, int whence);
++
++      // Read count bytes to the buffer buf. Return the number of
++      // bytes read (count).
++      ssize_t read(void* buf, size_t count);
++
++      // Write count bytes from buf. Return the number of bytes
++      // written (count).
++      ssize_t write(const void* buf, size_t count);
++
++      // Check image format
++      static int check_format(int fd, Bit64u imgsize);
++
++#ifndef BXIMAGE
++      // Save/restore support
++      bx_bool save_state(const char *backup_fname);
++      void restore_state(const char *backup_fname);
++#endif
++
++  private:
++      unsigned char *flat_memory_image;
++      Bit64s flat_memory_pos;
++      const char *pathname;
++};
++
+ // CONCAT MODE
+ class concat_image_t : public device_image_t
+ {
+Index: bx_debug/lexer.c
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: cpu/disasm.cc
+===================================================================
+--- cpu/disasm.cc	(revision 12184)
++++ cpu/disasm.cc	(working copy)
+@@ -450,9 +450,11 @@
+ 
+   int ret;
+ 
++#if BX_SUPPORT_X86_64
+   if (is_64)
+     ret = fetchDecode64(opcode, fetchModeMask, i, 16);
+   else
++#endif
+     ret = fetchDecode32(opcode, fetchModeMask, i, 16);
+ 
+   if (ret < 0)
+Index: bios/BIOS-bochs-latest
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: bios/BIOS-bochs-legacy
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: bios/rombios.c
+===================================================================
+--- bios/rombios.c	(revision 12184)
++++ bios/rombios.c	(working copy)
+@@ -3004,7 +3004,6 @@
+   }
+ 
+   // FIXME : move seg/off translation here
+-
+ ASM_START
+         sti  ;; enable higher priority interrupts
+ ASM_END
+@@ -3099,8 +3098,10 @@
+     current++;
+     write_word_DS(&EbdaData->ata.trsfsectors,current);
+     count--;
++
+     if(ioflag == 0) await_ide(NOT_BSY, iobase1, IDE_TIMEOUT);
+     status = inb(iobase1 + ATA_CB_STAT);
++
+     if(ioflag == 0)
+     {
+       if (count == 0) {

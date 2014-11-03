@@ -1,0 +1,18 @@
+megs: 4
+
+romimage: file=$BXSHARE/BIOS-bochs-latest
+vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+
+com1: enabled=1, mode=socket-server, dev=0.0.0.0:8888
+
+boot: c
+
+ata0-master: type=disk, mode=flat, path="dosfun4u.img"
+mouse: enabled=0
+
+cpu: ips=15000000
+display_library: sdl 
+vga: extension=vbe, update_freq=15
+pci: enabled=1, chipset=i440fx, slot1=pcivga 
+
+#log: /dev/null
