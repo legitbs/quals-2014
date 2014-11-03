@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'pp'
+require 'socket'
+require 'fritas/codec'
+s = TCPSocket.new 'localhost', 6908
+s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
+
+c = Fritas::Codec.new s
+
+h = c.expect :Hello
+pp h
+c.write :Hello, uuid: h.uuid
+
+pp c.expect(:Ready)
+
+c.write :ListTagReq
+tagresp = c.expect :ListTagResp
+pp tagresp
+
+password = nil
+password_tag = nil
+tagresp.tags.each do |t|
+  c.write :RelatedTagReq, tag: t
+  resp = c.expect :RelatedTagResp
+  pp resp
+
+  next if resp.tags.nil?
+
+  password_tag = resp.tags.detect do |t|
+    t.tagname =~ /password/
+  end
+
+  if password_tag
+    password = password_tag.tagname 
+    break
+  end
+end
+
+pp password_tag
+
+c.write :ListPostReq, tag: password_tag
+listpostresp = c.expect :ListPostResp
+
+pp listpostresp
+
+c.write :GetPostReq, uuid: listpostresp.uuids.first, password: password.sub(/^password=/,'')
+pp c.expect :GetPostResp
