@@ -1,0 +1,33 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    beefcake (0.5.0)
+    celluloid (0.15.2)
+      timers (~> 1.1.0)
+    celluloid-io (0.15.0)
+      celluloid (>= 0.15.0)
+      nio4r (>= 0.5.0)
+    ecdsa (0.1.5)
+    jruby-jars (1.7.12)
+    jruby-rack (1.1.14)
+    nio4r (1.0.0)
+    nio4r (1.0.0-java)
+    rake (10.1.1)
+    rubyzip (1.0.0)
+    timers (1.1.0)
+    warbler (1.4.2)
+      jruby-jars (>= 1.5.6, < 2.0)
+      jruby-rack (>= 1.0.0)
+      rake (>= 0.9.6)
+      rubyzip (>= 0.9, < 1.1)
+
+PLATFORMS
+  java
+  ruby
+
+DEPENDENCIES
+  beefcake
+  celluloid-io
+  ecdsa (~> 0.1.5)
+  rake
+  warbler

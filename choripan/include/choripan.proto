@@ -1,0 +1,49 @@
+message Hello {  
+  required bytes uuid = 1;
+}
+
+message Ready {}
+
+message GetPostReq {
+  required bytes uuid = 1;
+  required bytes signature = 2;
+}
+
+message GetPostResp {
+  optional Post post = 1;
+}
+
+message ListPostReq {
+}
+
+message ListPostResp {
+  repeated bytes uuids = 1;
+}
+
+message ListLogReq {}
+
+message ListLogResp {
+  repeated Log logs = 1;
+}
+
+message ErrorResp {
+  required bytes reason = 1;
+}
+
+message Post {
+  optional bytes uuid = 1;
+  required bytes title = 2;
+  required bytes body = 3;
+}
+
+message Log {
+  required bytes uuid = 1;
+  required bytes signature = 2;
+  required uint64 timestamp = 3;
+}
+
+message PubKey {
+  required bytes groupname = 1;
+  required bytes x = 2;
+  required bytes y = 3;
+}
