@@ -1,0 +1,11 @@
+rebaby is a low value reversing challenge that requires reversing and optomizing an algorithm.  
+The algorithm provided requires 10GB of disc and has 
+lots of disc writes/seeks with io flush after
+tons of printf followed by fflush
+giant, irrelevant allocations,
+required inputs
+extraneous loops
+the outputs is "the key is: $key" which is hashed and reconstructed from the file output algorithmically, 
+but the algorithm can be simplified and resequenced to about 10 lines of c.
+
+
