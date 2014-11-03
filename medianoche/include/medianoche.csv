@@ -1,0 +1,14 @@
+code,message
+0,Hello
+1,Ready
+11,StorePostReq
+12,StorePostResp
+13,GetPostReq
+14,GetPostResp
+15,ListPostReq
+16,ListPostResp
+21,ListTagReq
+22,ListTagResp
+31,RelatedTagReq
+32,RelatedTagResp
+255,ErrorResp

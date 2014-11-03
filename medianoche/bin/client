@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'pp'
+require 'socket'
+require 'medianoche/codec'
+s = TCPSocket.new 'localhost', 6909
+s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
+
+c = Medianoche::Codec.new s
+
+h = c.expect :Hello
+pp h
+c.write :Hello, uuid: h.uuid
+
+pp c.expect(:Ready)
+
+c.write :ListTagReq
+tagresp = c.expect :ListTagResp
+
+password_tag = nil
+tagresp.tags.each do |t|
+  c.write :RelatedTagReq, tag: t
+  resp = c.expect :RelatedTagResp
+  pp resp
+
+  next if resp.tags.nil?
+
+  password_tag = resp.tags.detect do |t|
+    t.tagname =~ /password/
+  end
+
+  break if password_tag
+end
+
+password = password_tag.tagname.sub(/^password=/,'')
+
+pp password_tag
+c.write :ListPostReq, tag: password_tag
+listpostresp = c.expect :ListPostResp
+
+pp listpostresp
+
+c.write :GetPostReq, uuid: listpostresp.uuids.first, password: password
+payloadresp = c.expect :GetPostResp
+pp payloadresp
+
+c.write(
+        :StorePostReq, post: Medianoche::Messages::Post.new( 
+                                                            title: 'hey trophy',
+                                                            body: "The flag is: fart",
+                                                            tags: payloadresp.post.tags
+                                                            ))
+
+storeresp = c.expect :StorePostResp
+pp storeresp
+
+c.write :GetPostReq, uuid: storeresp.uuid, password: password
+oracleresp = c.expect :GetPostResp
+pp oracleresp
+
+pp payloadresp.post.body
+pp oracleresp.post.body

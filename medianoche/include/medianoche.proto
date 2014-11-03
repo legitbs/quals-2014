@@ -1,0 +1,59 @@
+message Hello {  
+  required bytes uuid = 1;
+}
+
+message Ready {}
+
+message StorePostReq {
+  required Post post = 1;
+}
+
+message StorePostResp {
+  required bytes uuid = 1;
+}
+
+message GetPostReq {
+  required bytes uuid = 1;
+  optional bytes password = 2;
+}
+
+message GetPostResp {
+  optional Post post = 1;
+}
+
+message ListPostReq {
+  optional Tag tag = 1;
+}
+
+message ListPostResp {
+  repeated bytes uuids = 1;
+}
+
+message ListTagReq {}
+
+message ListTagResp {
+  repeated Tag tags = 1;
+}
+
+message RelatedTagReq {
+  required Tag tag = 1;
+}
+
+message RelatedTagResp {
+  repeated Tag tags = 1;
+}
+
+message ErrorResp {
+  required bytes reason = 1;
+}
+
+message Post {
+  optional bytes uuid = 1;
+  required bytes title = 2;
+  required bytes body = 3;
+  repeated Tag tags = 4;
+}
+
+message Tag {
+  required bytes tagname = 1;
+}
